@@ -7,6 +7,7 @@ env:
   - DJANGO=2.1 DB=postgresql
 install: 
   - "pip install -r requirements.txt"
+  - "pip install coveralls"
 script: 
   - echo "Seal"
 after_script:
