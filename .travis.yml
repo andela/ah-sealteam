@@ -7,8 +7,5 @@ env:
   - DJANGO=2.1 DB=postgresql
 install: 
   - "pip install -r requirements.txt"
-before_script: 
-  - psql -c 'create database testdb;' -U postgres
-  - python3 manage.py migrate
 script: 
-  - python3 manage.py test
+  - pytest
