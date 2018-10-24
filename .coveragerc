@@ -7,4 +7,5 @@ omit =
   *venv/*,
   *urls.py,
   *wsgi/*,
-  manage.py
+  manage.py,
+  *env/*
