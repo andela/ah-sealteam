@@ -1,6 +1,8 @@
+from django.urls import reverse
 from rest_framework.test import APIClient
 from django.test import TestCase
 from .apps.authentication.models import User
+
 
 class BaseTestCase(TestCase):
     """
@@ -11,10 +13,32 @@ class BaseTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.new_user = {
-            'username': 'asheuh',
-            'email': 'asheuh@gmail.com',
-            'password': 'Mermaid@914'
+            "user": {'username': 'asheuh',
+                     'email': 'asheuh@gmail.com',
+                     'password': 'Mermaid@914'
+                     }
         }
-        User.objects.create_superuser(self.new_user.get('username'),
-                                 self.new_user.get('email'), self.new_user.get('password'))
+        self.register_url = reverse('authentication:register')
+        self.user_url = reverse('authentication:update_user')
+        self.username = "mike"
+        self.wrongmail = "dennis mail.com"
+        self.email = "testemail@gmail.com"
+        self.password = "testpassword"
+        self.login_url = reverse("authentication:login")
+        # this user will be used to test login
+        User.objects.create_user(username=self.username,
+                                 email=self.email, password=self.password)
+        data_for_get_test = {
+            "user": {
+                "email": self.email,
+                "password": self.password
+            }
+        }
+        response = self.client.post(self.login_url, data_for_get_test, format='json')
+        self.token = response.data["token"]
+        self.assertEqual(response.status_code, 200)
+        assert response.data['email'] == self.email
+        assert response.data['username'] == self.username
+        assert response.data.get("token")
+
 
