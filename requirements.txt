@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 astroid==2.0.4
 Django==2.1
 django-cors-middleware==1.2.0
@@ -15,6 +16,18 @@ more-itertools==4.3.0
 pluggy==0.8.0
 py==1.7.0
 PyJWT==1.4.2
+=======
+atomicwrites==1.2.1
+attrs==18.2.0
+Django==1.10
+django-cors-middleware==1.2.0
+django-extensions==1.7.1
+djangorestframework==3.4.4
+more-itertools==4.3.0
+pluggy==0.8.0
+py==1.7.0
+PyJWT==1.4.2
+>>>>>>> 40706f595d42c99e56c5983c5d5123784d08da0f
 pytest==3.9.2
 pytest-django==3.4.3
 six==1.10.0
