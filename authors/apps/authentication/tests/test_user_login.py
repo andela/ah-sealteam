@@ -6,26 +6,26 @@ class TestUserLogin(BaseTestCase):
     params: [email, password]
     """
 
-    def test_user_login(self):
-        with self.client:
-            pass
+    # def test_user_login(self):
+    #     with self.client:
+    #         pass
 
-    def test_user_login_with_invalid_password(self):
-        with self.client:
-            pass
+    # def test_user_login_with_invalid_password(self):
+    #     with self.client:
+    #         pass
 
-    def test_user_login_with_no_email(self):
-        with self.client:
-            pass
+    # def test_user_login_with_no_email(self):
+    #     with self.client:
+    #         pass
 
-    def test_user_login_with_no_password(self):
-        with self.client:
-            pass
+    # def test_user_login_with_no_password(self):
+    #     with self.client:
+    #         pass
 
-    def test_user_login_without_an_account(self):
-        with self.client:
-            pass
+    # def test_user_login_without_an_account(self):
+    #     with self.client:
+    #         pass
 
-    def test_user_login_with_deactivated_account(self):
-        with self.client:
-            pass
+    # def test_user_login_with_deactivated_account(self):
+    #     with self.client:
+    #         pass
