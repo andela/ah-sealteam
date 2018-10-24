@@ -9,4 +9,4 @@ install:
   - "pip install -r requirements.txt"
   - "pip install coveralls"
 script: 
-  - pytest
+  - pytest --with-coverage --cover-package=app && coverage report
