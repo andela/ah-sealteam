@@ -117,4 +117,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         return self.username
 
+    def token(self):
+        """This method creates a token for a user who registers or logs in successfully"""
+        data = {
+            "id": self.id,
+            "username": self.username,
+            "exp": datetime.now() + timedelta(days=1)
+        }
+        return jwt.encode(data, settings.SECRET_KEY).decode('utf-8')
+
 
