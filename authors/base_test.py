@@ -1,6 +1,6 @@
 from rest_framework.test import APIClient
 from django.test import TestCase
-from apps.authentication import User
+from .apps.authentication.models import User
 
 class BaseTestCase(TestCase):
     """
@@ -15,6 +15,6 @@ class BaseTestCase(TestCase):
             'email': 'asheuh@gmail.com',
             'password': 'Mermaid@914'
         }
-        User.objects.create_superuser(self.new_user.username,
-                                 self.new_user.email, self.new_user.password)
+        User.objects.create_superuser(self.new_user.get('username'),
+                                 self.new_user.get('email'), self.new_user.get('password'))
 
