@@ -23,7 +23,7 @@ class BaseTestCase(TestCase):
         self.username = "mike"
         self.wrongmail = "dennis mail.com"
         self.email = "testemail@gmail.com"
-        self.password = "testpassword"
+        self.password = "testpasswor67d"
         self.login_url = reverse("authentication:login")
         # this user will be used to test login
         User.objects.create_user(username=self.username,

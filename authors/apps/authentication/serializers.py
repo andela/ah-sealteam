@@ -1,8 +1,16 @@
+import re
+
 from django.contrib.auth import authenticate
 
 from rest_framework import serializers
 
 from .models import User
+
+
+def valid_at_least_digit(value):
+    """Make sure it contains a digit"""
+    if not re.search("\d+", value):
+        raise serializers.ValidationError('Password should contain at least a digit')
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -13,7 +21,8 @@ class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=128,
         min_length=8,
-        write_only=True
+        write_only=True,
+        validators=[valid_at_least_digit]
     )
 
     # The client should not be able to send a token along with a registration
@@ -87,7 +96,7 @@ class LoginSerializer(serializers.Serializer):
         return {
             'email': user.email,
             'username': user.username,
-            'token':user.token,
+            'token': user.token,
 
         }
 
@@ -116,7 +125,6 @@ class UserSerializer(serializers.ModelSerializer):
         # password field, we needed to specify the `min_length` and 
         # `max_length` properties too, but that isn't the case for the token
         # field.
-
 
     def update(self, instance, validated_data):
         """Performs an update on a User."""
