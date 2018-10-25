@@ -1,7 +1,8 @@
-from django.urls import reverse
 from rest_framework import status
+
 from authors.base_test import BaseTestCase
 import pytest
+
 
 class TestUserRegistration(BaseTestCase):
     """
@@ -13,24 +14,57 @@ class TestUserRegistration(BaseTestCase):
         """
         Ensures user can create a new account
         """
-        with self.client:
-            url = reverse('create_user')
-            response = self.client.post(url, self.new_user, format='json')
-            self.assertEqual(response.status, status.HTTP_201_CREATED)
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.data['email'] == "asheuh@gmail.com"
+        assert response.data['username'] == "asheuh"
+        assert response.data.get("token")
 
     @pytest.mark.skip(reason="no way of currently testing this")
     def test_user_register_with_invalid_email(self):
-        with self.client:
-            pass
-    @pytest.mark.skip(reason="no way of currently testing this")
+        data={
+            "user":{
+                "email":self.wrongmail,
+                "username":self.username,
+                "password": "ajkjndsjnsd"
+            }
+        }
+        response = self.client.post(self.register_url,data , format='json')
+        self.assertEqual(response.status_code, 400)
+        assert response.data['errors']["email"][0] == "Enter a valid email address."
+
     def test_user_register_with_no_password(self):
-        with self.client:
-            pass
-    @pytest.mark.skip(reason="no way of currently testing this")
+        data = {
+            "user": {
+                "email": self.email,
+                "username": self.username,
+                "password":""
+            }
+        }
+        response = self.client.post(self.register_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert response.data['errors']["password"][0] == "This field may not be blank."
+
     def test_user_register_with_no_email(self):
-        with self.client:
-            pass
-    @pytest.mark.skip(reason="no way of currently testing this")
+        data = {
+            "user": {
+                "email": "",
+                "username": self.username,
+                "password": "sgdssdhbd"
+            }
+        }
+        response = self.client.post(self.register_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert response.data['errors']["email"][0] == "This field may not be blank."
+
     def test_register_if_user_already_exists(self):
-        with self.client:
-            pass
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.data['email'] == "asheuh@gmail.com"
+        assert response.data['username'] == "asheuh"
+        assert response.data.get("token")
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        # import pdb;pdb.set_trace()
+        assert response.status_code==400
+        assert response.data["errors"]["email"][0] == "user with this email already exists."
+        assert response.data["errors"]["username"][0] == "user with this username already exists."
