@@ -7,6 +7,7 @@ env:
   - DJANGO=2.1.2 DB=postgresql
 install: 
   - "pip install -r requirements.txt"
+  - "pip install coveralls"
 script: 
   - pytest --cov=authors --cov-report=
 after_success: coveralls
