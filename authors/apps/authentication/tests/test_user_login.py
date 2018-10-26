@@ -29,7 +29,8 @@ class TestUserLogin(BaseTestCase):
         }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
-        assert response.data['errors']["error"][0] == "A user with this email and password was not found."
+        assert response.data['errors']["error"][0] == "A user with this email and password was not found. Kindly check your email to change your password if \
+                forgotten."
 
     def test_user_login_with_no_email(self):
         data = {
@@ -62,7 +63,11 @@ class TestUserLogin(BaseTestCase):
         }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
-        assert response.data['errors']["error"][0] == "A user with this email and password was not found."
+        assert response.data['errors']["error"][0] == "A user with this email and password was not found. Kindly check your email to change your password if \
+                forgotten."
 
     def test_user_login_with_deactivated_account(self):
         pass
+
+
+

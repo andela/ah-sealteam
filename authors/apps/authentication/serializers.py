@@ -4,6 +4,10 @@ from rest_framework import serializers
 
 from .models import User
 
+from django.core.mail import send_mail
+
+
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
@@ -67,9 +71,16 @@ class LoginSerializer(serializers.Serializer):
 
         # If no user was found matching this email/password combination then
         # `authenticate` will return `None`. Raise an exception in this case.
+        # import pdb; pdb.set_trace()
         if user is None:
             raise serializers.ValidationError(
-                'A user with this email and password was not found.'
+                'A user with this email and password was not found. Kindly check your email to change your password if \
+                forgotten.',
+                send_mail(
+            'SEAL TEAM', 
+            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following url to reset. \
+            \n /api/users/resetpassword . Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
+            'simplysealteam@gmail.com', [email], fail_silently=False)
             )
 
         # Django provides a flag on our `User` model called `is_active`. The
@@ -144,3 +155,20 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializers registration requests and creates a new user."""
+    # Ensure passwords are at least 8 characters long, no longer than 128
+    # characters, and can not be read by the client.
+    password = serializers.CharField(max_length=128, required=True, min_length=8,write_only=True)
+    email = serializers.EmailField(write_only=True)
+
+
+    # The client should not be able to send a token along with a registration
+    # request. Making `token` read-only handles that for us.
+
+    class Meta:
+        fields = ['email', 'password']
+        
+        
