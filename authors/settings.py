@@ -168,5 +168,5 @@ django_heroku.settings(locals())
 SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
     'USE_SESSION_AUTH': False,
-    'DOC_EXPANSION': 'list'
+    'DOC_EXPANSION': 'list',
 }
