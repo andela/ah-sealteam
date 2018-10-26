@@ -14,6 +14,27 @@ by leveraging the modern web.
 ## API Spec
 The preferred JSON object to be returned by the API should be structured as follows:
 
+## API Test Setup
+
+```Export environment variables
+$ export TEST_DATABASE='authors_haven_test_db'
+$ export DATABASE_USER='barryazah'
+$ export PASSWORD=''
+```
+
+```
+Run migrations
+
+$ python manage.py makemigrations
+$ python manage.py migrate
+```
+
+```
+Rub the tests
+
+$ pytest
+```
+
 ### Users (for authentication)
 
 ```source-json
