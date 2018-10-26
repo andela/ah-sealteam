@@ -61,7 +61,22 @@ class TestUserRegistration(BaseTestCase):
         assert response.data['username'] == "asheuh"
         assert response.data.get("token")
         response = self.client.post(self.register_url, self.new_user, format='json')
-        # import pdb;pdb.set_trace()
         assert response.status_code==400
         assert response.data["errors"]["email"][0] == "user with this email already exists."
         assert response.data["errors"]["username"][0] == "user with this username already exists."
+
+    def test_user_reset_password_with_email(self):
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        print(response.data['email'])
+        data = {
+            "user": {
+                "email": "asheuh@gmail.com",
+                "password": "newpassword"
+            }
+        }
+
+        response = self.client.put(self.reset_password_url, data, format='json')
+        print(response)
+        self.assertEqual(response.status_code, 200)
+        print(response.data)
+        assert response.data["Success."] == "Password Successfuly Reset"

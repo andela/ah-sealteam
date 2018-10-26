@@ -2,11 +2,14 @@ from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView 
+from rest_framework.generics import UpdateAPIView
+from .models import User
+from django.core.mail import send_mail
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer
 )
 
 
@@ -72,4 +75,33 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ResetPasswordAPIView(UpdateAPIView):
+    # Allow any user (authenticated or not) to hit this endpoint.
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ResetPasswordSerializer
+
+    def get_object(self, request, queryset=None):
+        obj = User.objects.get(email=request.data["user"]["email"])
+        return obj
+
+    def update(self, request, *args, **kwargs):
+       self.object = self.get_object(request)
+       serializer = self.get_serializer(data=request.data["user"])
+
+       if serializer.is_valid():
+           new_password = request.data["user"]["password"]
+           email = request.data["user"]["email"]
+           self.object.set_password(new_password)
+           self.object.save()
+           send_mail(
+            'SEAL TEAM', 
+            f'Greetings, \n Your password has been chamged successfluy. Your new password is {new_password}. \
+            \n Keep it safe :-). \n Hope you have a lovely experience using our website.\
+            \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
+           return Response({'Success.':"Password Successfuly Reset"}, 
+           status=status.HTTP_200_OK)
+
+       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
