@@ -2,6 +2,8 @@ from rest_framework import status
 
 from authors.base_test import BaseTestCase
 
+from django.contrib.auth.tokens import default_token_generator
+
 
 class TestUserRegistration(BaseTestCase):
     """
@@ -65,18 +67,31 @@ class TestUserRegistration(BaseTestCase):
         assert response.data["errors"]["email"][0] == "user with this email already exists."
         assert response.data["errors"]["username"][0] == "user with this username already exists."
 
-    def test_user_reset_password_with_email(self):
+    def test_forgot_password(self):
         response = self.client.post(self.register_url, self.new_user, format='json')
-        print(response.data['email'])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
             "user": {
-                "email": "asheuh@gmail.com",
-                "password": "newpassword"
+                "email": self.email,
             }
         }
-
-        response = self.client.put(self.reset_password_url, data, format='json')
-        print(response)
+        response = self.client.post(self.forgot_password_url, data, format='json')
         self.assertEqual(response.status_code, 200)
+
+
+    def test_reset_password(self):
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = {
+            "user": {
+                "email": self.email,
+                "password": self.password,
+                "token": "generated-token"
+            }
+        }
+        response = self.client.put(self.reset_password_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
         print(response.data)
-        assert response.data["Success."] == "Password Successfuly Reset"
+        assert response.data["Message"] == "Invalid token. Please generate another reset password email"
+        print(response)
+        

@@ -6,6 +6,8 @@ from .models import User
 
 from django.core.mail import send_mail
 
+from django.contrib.auth.tokens import default_token_generator
+
 
 
 
@@ -75,12 +77,7 @@ class LoginSerializer(serializers.Serializer):
         if user is None:
             raise serializers.ValidationError(
                 'A user with this email and password was not found. Kindly check your email to change your password if \
-                forgotten.',
-                send_mail(
-            'SEAL TEAM', 
-            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following url to reset. \
-            \n /api/users/resetpassword . Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
-            'simplysealteam@gmail.com', [email], fail_silently=False)
+                forgotten.'
             )
 
         # Django provides a flag on our `User` model called `is_active`. The
@@ -158,17 +155,46 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    """Serializers registration requests and creates a new user."""
-    # Ensure passwords are at least 8 characters long, no longer than 128
-    # characters, and can not be read by the client.
+    """Serializers resets password."""
     password = serializers.CharField(max_length=128, required=True, min_length=8,write_only=True)
     email = serializers.EmailField(write_only=True)
-
-
-    # The client should not be able to send a token along with a registration
-    # request. Making `token` read-only handles that for us.
+    token = serializers.CharField(max_length=225)
 
     class Meta:
-        fields = ['email', 'password']
+        fields = ['email', 'password', 'token']
+        
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=255)
+    token = serializers.CharField(max_length=225, required=False)
+    username = serializers.CharField(max_length=225, required=False, read_only=True)
+
+    
+    def validate(self, data):
+       
+        email = data.get('email', None)
         
         
+        if email is None:
+            raise serializers.ValidationError(
+                'An email address is required to continue.'
+            )
+
+        user = User.objects.filter(email=data.get('email', None)).first()
+        if user is None:
+            raise serializers.ValidationError(
+                'No records found with the email address. Create An Account To Continue.'
+            )
+        else:
+            token = default_token_generator.make_token(user)
+            send_mail(
+            'SEAL TEAM', 
+            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following token when resetting {token}. \
+            \n using this link /api/users/resetpassword . Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
+            'simplysealteam@gmail.com', [email], fail_silently=False)
+
+        return {
+            'email': "Instructions sent to " + email + ". Kindly check your email",
+            'token':token
+
+        }
+

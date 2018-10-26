@@ -126,4 +126,3 @@ class User(AbstractBaseUser, PermissionsMixin):
             "exp": datetime.now() + timedelta(days=1)
         }
         return jwt.encode(data, settings.SECRET_KEY).decode('utf-8')
-
