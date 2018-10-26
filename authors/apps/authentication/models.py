@@ -1,6 +1,7 @@
 import jwt
 
 from datetime import datetime, timedelta
+from django.core.mail import send_mail
 
 from django.conf import settings
 from django.contrib.auth.models import (
@@ -29,6 +30,9 @@ class UserManager(BaseUserManager):
         user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
         user.save()
+        send_mail(
+           'SEAL TEAM',
+           f'Greetings {username}, \n You have successfuly registered an account with us. \n Use the details below to log in into your account.\n Email address: {email} \n Password: {password}. \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
 
         return user
 
