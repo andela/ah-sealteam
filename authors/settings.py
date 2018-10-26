@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'rest_framework',
+    'rest_framework_swagger',
 
     'authors.apps.authentication',
     'authors.apps.core',
@@ -164,3 +165,8 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 django_heroku.settings(locals())
+SWAGGER_SETTINGS = {
+    'SHOW_REQUEST_HEADERS': True,
+    'USE_SESSION_AUTH': False,
+    'DOC_EXPANSION': 'list'
+}
