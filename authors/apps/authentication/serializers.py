@@ -156,8 +156,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ResetPasswordSerializer(serializers.Serializer):
     """Serializers resets password."""
-    password = serializers.CharField(max_length=128, required=True, min_length=8,write_only=True)
-    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(max_length=128, required=True, min_length=8)
+    email = serializers.EmailField()
     token = serializers.CharField(max_length=225)
 
     class Meta:
@@ -188,13 +188,12 @@ class ForgotPasswordSerializer(serializers.Serializer):
             token = default_token_generator.make_token(user)
             send_mail(
             'SEAL TEAM', 
-            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following token when resetting {token}. \
-            \n using this link /api/users/resetpassword . Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
+            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following token and url when resetting \
+            \n \n token: {token} \n link: /api/users/resetpassword \n \n. Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
             'simplysealteam@gmail.com', [email], fail_silently=False)
 
         return {
-            'email': "Instructions sent to " + email + ". Kindly check your email",
-            'token':token
+            'email': "Instructions sent to " + email + ". Kindly check your email"
 
         }
 

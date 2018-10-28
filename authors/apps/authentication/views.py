@@ -85,23 +85,26 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
     serializer_class = ResetPasswordSerializer
 
     def get_object(self, request, queryset=None):
-        serializer = self.get_serializer(data=request.data["user"])
+        user = request.data
+        serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        obj = User.objects.get(email=request.data["user"]["email"])
+        obj = User.objects.get(email=serializer.data["email"])
+        print(obj)
         return obj
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object(request)
         
-        serializer = self.get_serializer(data=request.data["user"])
+        user = request.data
+        serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
         
         if serializer.is_valid():
-            new_password = request.data["user"]["password"]
-            email = request.data["user"]["email"]
+            new_password = serializer.data["password"]
+            email = serializer.data["email"]
 
-        user = User.objects.filter(email=request.data["user"]["email"]).first()
-        is_valid_token = default_token_generator.check_token(user, request.data["user"]["token"])
+        user = User.objects.filter(email=serializer.data["email"]).first()
+        is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
         if is_valid_token is False:
             return Response({"Message" : "Invalid token. Please generate another reset password email"}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -123,7 +126,7 @@ class ForgotPasswordAPIView(APIView):
     serializer_class = ForgotPasswordSerializer
 
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data
 
         # Notice here that we do not call `serializer.save()` like we did for
         # the registration endpoint. This is because we don't actually have

@@ -71,9 +71,7 @@ class TestUserRegistration(BaseTestCase):
         response = self.client.post(self.register_url, self.new_user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
-            "user": {
-                "email": self.email,
-            }
+                "email": self.email
         }
         response = self.client.post(self.forgot_password_url, data, format='json')
         self.assertEqual(response.status_code, 200)
@@ -83,11 +81,9 @@ class TestUserRegistration(BaseTestCase):
         response = self.client.post(self.register_url, self.new_user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
-            "user": {
                 "email": self.email,
                 "password": self.password,
                 "token": "generated-token"
-            }
         }
         response = self.client.put(self.reset_password_url, data, format='json')
         self.assertEqual(response.status_code, 400)
