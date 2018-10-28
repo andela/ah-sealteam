@@ -75,12 +75,10 @@ class TestUserRegistration(BaseTestCase):
     def test_password_no_digit(self):
         """Try to register with password with no digit"""
         my_user = {
-            "user": {
                 "email": "newmail@gmail.com",
                 "username": "mineuser",
                 "password": "asghvdbjknfsadnkf"
             }
-        }
         response = self.client.post(self.register_url, my_user, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "Password should contain at least a digit"
