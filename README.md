@@ -1,5 +1,5 @@
-[![Coverage Status](https://coveralls.io/repos/github/andela/ah-sealteam/badge.svg?branch=develop)](https://coveralls.io/github/andela/ah-sealteam?branch=develop) 
-[![Build Status](https://travis-ci.org/andela/ah-sealteam.svg?branch=develop)](https://travis-ci.org/andela/ah-sealteam)
+[![Coverage Status](https://coveralls.io/repos/github/andela/ah-sealteam/badge.svg?branch=develop)](https://coveralls.io/github/andela/ah-sealteam?branch=develop) [![Build Status](https://travis-ci.org/andela/ah-sealteam.svg?branch=develop)](https://travis-ci.org/andela/ah-sealteam)
+
 
 
 
