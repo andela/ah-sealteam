@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
+import django_heroku
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,10 +23,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '7pgozr2jn7zs_o%i8id6=rddie!*0f0qy3$oy$(8231i^4*@u3'
 
+APP_SETTINGS = os.getenv("APP_SETTINGS")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = True if APP_SETTINGS == "development" else False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -86,8 +89,8 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': 'localhost',
-        'PORT': ''
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': '5432'
     }
 }
 
@@ -122,11 +125,18 @@ USE_L10N = True
 
 USE_TZ = True
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = [
+    os.path.join(PROJECT_ROOT, 'static'),
+]
 CORS_ORIGIN_WHITELIST = (
     '0.0.0.0:4000',
     'localhost:4000',
@@ -146,3 +156,5 @@ REST_FRAMEWORK = {
         'authors.apps.authentication.backends.JWTAuthentication',
     ),
 }
+
+django_heroku.settings(locals())
