@@ -20,36 +20,30 @@ class TestUserRegistration(BaseTestCase):
 
     def test_user_register_with_invalid_email(self):
         data={
-            "user":{
                 "email":self.wrongmail,
                 "username":self.username,
                 "password": "ajkjndsjnsd"
             }
-        }
         response = self.client.post(self.register_url,data , format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "Enter a valid email address."
 
     def test_user_register_with_no_password(self):
         data = {
-            "user": {
                 "email": self.email,
                 "username": self.username,
                 "password":""
             }
-        }
         response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "This field may not be blank."
 
     def test_user_register_with_no_email(self):
         data = {
-            "user": {
                 "email": "",
                 "username": self.username,
                 "password": "sgdssdhbd"
             }
-        }
         response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "This field may not be blank."
@@ -57,6 +51,7 @@ class TestUserRegistration(BaseTestCase):
     def test_register_if_user_already_exists(self):
         response = self.client.post(self.register_url, self.new_user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print(response)
         assert response.data['email'] == "asheuh@gmail.com"
         assert response.data['username'] == "asheuh"
         assert response.data.get("token")
