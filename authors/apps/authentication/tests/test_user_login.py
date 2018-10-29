@@ -1,4 +1,5 @@
 "Test the login endpoint"
+from authors.apps.authentication.models import User
 from authors.base_test import BaseTestCase
 
 
@@ -19,8 +20,6 @@ class TestUserLogin(BaseTestCase):
             }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 200)
-        assert response.data['email'] == self.email
-        assert response.data['username'] == self.username
         assert response.data.get("token")
 
     def test_user_login_with_invalid_password(self):
@@ -37,6 +36,7 @@ class TestUserLogin(BaseTestCase):
         assert response.data['errors']["error"][0] == "A user with this email " \
                                                       "and password was not found."
 
+    #
     def test_user_login_with_no_email(self):
         """
         Test with no email
@@ -50,6 +50,7 @@ class TestUserLogin(BaseTestCase):
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "This field may not be blank."
 
+    #
     def test_user_login_with_no_password(self):
         """Test with no password"""
         data = {
@@ -60,6 +61,7 @@ class TestUserLogin(BaseTestCase):
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "This field may not be blank."
 
+    #
     def test_user_login_without_an_account(self):
         """Login without account"""
         data = {
@@ -71,9 +73,13 @@ class TestUserLogin(BaseTestCase):
         assert response.data['errors']["error"][0] == "A user with this email " \
                                                       "and password was not found."
 
+    #
     def test_user_login_with_deactivated_account(self):
         """Login deactivated user"""
-        pass
-
-
-
+        user = User.objects.get(email=self.email)
+        user.is_active = False
+        user.save()
+        response = self.client.post(self.login_url, self.data_for_get_test, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert response.data['errors']["error"][0] == "A user with this email " \
+                                                      "and password was not found."

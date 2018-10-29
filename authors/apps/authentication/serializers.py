@@ -11,24 +11,13 @@ from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 
 
-
-
-def valid_at_least_digit(value):
-    """Make sure it contains a digit"""
-    if not re.search("\d+", value):
-        raise serializers.ValidationError('Password should contain at least a digit')
-
-
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
 
-    # Ensure passwords are at least 8 characters long, no longer than 128
-    # characters, and can not be read by the client.
     password = serializers.CharField(
         max_length=128,
         min_length=8,
-        write_only=True,
-        validators=[valid_at_least_digit]
+        write_only=True
     )
 
     # The client should not be able to send a token along with a registration
@@ -38,7 +27,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         # List all of the fields that could possibly be included in a request
         # or response, including fields specified explicitly above.
-        fields = ['email', 'username', 'password', 'token']
+        fields = ['email', 'password', 'username', 'token']
+        extra_kwargs = {'username': {
+            'write_only': True
+        },
+            'email': {
+                'write_only': True
+            }
+        }
 
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
@@ -46,10 +42,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    email = serializers.CharField(max_length=255)
-    username = serializers.CharField(max_length=255, read_only=True)
+    email = serializers.EmailField(max_length=255, write_only=True)
     password = serializers.CharField(max_length=128, write_only=True)
-    token = serializers.CharField(read_only=True, max_length=255)
+    token = serializers.CharField(max_length=255, read_only=True)
+
+    class Meta:
+        fields = ('email', 'password', 'token')
 
     def validate(self, data):
         # The `validate` method is where we make sure that the current
@@ -101,10 +99,8 @@ class LoginSerializer(serializers.Serializer):
         # This is the data that is passed to the `create` and `update` methods
         # that we will see later on.
         return {
-            'email': user.email,
-            'username': user.username,
-            'token': user.token,
-
+            "email": user.email,
+            "token": user.token
         }
 
 
@@ -169,18 +165,17 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['email', 'password', 'token']
-        
+
+
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=255)
     token = serializers.CharField(max_length=225, required=False)
     username = serializers.CharField(max_length=225, required=False, read_only=True)
 
-    
     def validate(self, data):
-       
+
         email = data.get('email', None)
-        
-        
+
         if email is None:
             raise serializers.ValidationError(
                 'An email address is required to continue.'
@@ -194,13 +189,15 @@ class ForgotPasswordSerializer(serializers.Serializer):
         else:
             token = default_token_generator.make_token(user)
             send_mail(
-            'SEAL TEAM', 
-            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following token and url when resetting \
-            \n \n token: {token} \n link: /api/users/resetpassword \n \n. Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
-            'simplysealteam@gmail.com', [email], fail_silently=False)
+                'SEAL TEAM',
+                f'Greetings, \n You have given us a request to reset your password. \n '
+                f'Kindly use the following token and url when resetting \
+                \n \n token: {token} \n link: /api/users/resetpassword \n \n.'
+                f' Hope you have a lovely experience using our website. \n \n '
+                f'Have Fun!!! \n Seal Team',
+                'simplysealteam@gmail.com', [email], fail_silently=False)
 
         return {
             'email': "Instructions sent to " + email + ". Kindly check your email"
 
         }
-

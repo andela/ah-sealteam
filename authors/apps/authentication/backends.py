@@ -21,7 +21,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
             token = token.split(" ")[1]
             payload = jwt.decode(token, settings.SECRET_KEY)
         except Exception as e:
-            raise exceptions.AuthenticationFailed("Invalid token what")
+            raise exceptions.AuthenticationFailed("Invalid token")
         try:
             user = User.objects.get(pk=payload['id'])
         except User.DoesNotExist:
