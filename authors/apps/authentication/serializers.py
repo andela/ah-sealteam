@@ -76,8 +76,7 @@ class LoginSerializer(serializers.Serializer):
         # import pdb; pdb.set_trace()
         if user is None:
             raise serializers.ValidationError(
-                'A user with this email and password was not found. Kindly check your email to change your password if \
-                forgotten.'
+                'A user with this email and password was not found.'
             )
 
         # Django provides a flag on our `User` model called `is_active`. The

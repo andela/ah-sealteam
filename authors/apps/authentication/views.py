@@ -88,8 +88,11 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
         user = request.data
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+        try:
+            obj = User.objects.get(email=serializer.data["email"])
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         obj = User.objects.get(email=serializer.data["email"])
-        print(obj)
         return obj
 
     def update(self, request, *args, **kwargs):
@@ -102,11 +105,12 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
         if serializer.is_valid():
             new_password = serializer.data["password"]
             email = serializer.data["email"]
+            
 
         user = User.objects.filter(email=serializer.data["email"]).first()
         is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
         if is_valid_token is False:
-            return Response({"Message" : "Invalid token. Please generate another reset password email"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Message" : "Invalid email address or token. Please check your email or generate another reset password email"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             self.object.set_password(new_password)
             self.object.save()
