@@ -23,7 +23,7 @@ class BaseTestCase(TestCase):
         self.username = "mike"
         self.wrongmail = "dennis mail.com"
         self.email = "testemail@gmail.com"
-        self.password = "testpassword"
+        self.password = "testpasswor67d"
         self.login_url = reverse("authentication:login")
         self.reset_password_url = reverse("authentication:reset_password")
         self.forgot_password_url = reverse("authentication:forgot_password")
