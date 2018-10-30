@@ -35,6 +35,12 @@ class TestUserRegistration(BaseTestCase):
             }
         }
         response = self.client.post(self.register_url, data, format='json')
+        data={
+                "email":self.wrongmail,
+                "username":self.username,
+                "password": "ajkjndsjnsd"
+            }
+        response = self.client.post(self.register_url,data , format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "Enter a valid email address."
 
@@ -44,12 +50,10 @@ class TestUserRegistration(BaseTestCase):
         :return:
         """
         data = {
-            "user": {
                 "email": self.email,
                 "username": self.username,
                 "password": ""
             }
-        }
         response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "This field may not be blank."
@@ -60,12 +64,10 @@ class TestUserRegistration(BaseTestCase):
         :return:
         """
         data = {
-            "user": {
                 "email": "",
                 "username": self.username,
                 "password": "sgds6sdhbd"
             }
-        }
         response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "This field may not be blank."
@@ -73,12 +75,10 @@ class TestUserRegistration(BaseTestCase):
     def test_password_no_digit(self):
         """Try to register with password with no digit"""
         my_user = {
-            "user": {
                 "email": "newmail@gmail.com",
                 "username": "mineuser",
                 "password": "asghvdbjknfsadnkf"
             }
-        }
         response = self.client.post(self.register_url, my_user, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "Password should contain at least a digit"
@@ -87,6 +87,7 @@ class TestUserRegistration(BaseTestCase):
         """Register with register user"""
         response = self.client.post(self.register_url, self.new_user, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        print(response)
         assert response.data['email'] == "asheuh@gmail.com"
         assert response.data['username'] == "asheuh"
         assert response.data.get("token")
@@ -130,5 +131,3 @@ class TestUserRegistration(BaseTestCase):
         print(response.data)
         assert response.data["Message"] == "Invalid email address or token. Please check your email or generate another reset password email"
         print(response)
-        
-        

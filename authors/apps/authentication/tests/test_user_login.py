@@ -14,11 +14,9 @@ class TestUserLogin(BaseTestCase):
         :return:
         """
         data = {
-            "user": {
                 "email": self.email,
                 "password": self.password
             }
-        }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 200)
         assert response.data['email'] == self.email
@@ -31,11 +29,9 @@ class TestUserLogin(BaseTestCase):
         :return:
         """
         data = {
-            "user": {
                 "email": self.email,
                 "password": "ndssjdknkjf"
             }
-        }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["error"][0] == "A user with this email " \
@@ -47,11 +43,9 @@ class TestUserLogin(BaseTestCase):
         :return:
         """
         data = {
-            "user": {
                 "email": "",
                 "password": "ndssjdknkjf"
             }
-        }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "This field may not be blank."
@@ -59,11 +53,9 @@ class TestUserLogin(BaseTestCase):
     def test_user_login_with_no_password(self):
         """Test with no password"""
         data = {
-            "user": {
                 "email": self.email,
                 "password": ""
             }
-        }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "This field may not be blank."
@@ -71,11 +63,9 @@ class TestUserLogin(BaseTestCase):
     def test_user_login_without_an_account(self):
         """Login without account"""
         data = {
-            "user": {
                 "email": "noaccount@fma.com",
                 "password": "ndssjdknkjf"
             }
-        }
         response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["error"][0] == "A user with this email " \

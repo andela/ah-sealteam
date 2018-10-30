@@ -2,11 +2,11 @@ from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView 
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.views import APIView
 from .models import User
 from django.core.mail import send_mail
 
+from rest_framework.generics import CreateAPIView
 
 from .renderers import UserJSONRenderer
 from .serializers import (
@@ -15,14 +15,14 @@ from .serializers import (
 from django.contrib.auth.tokens import default_token_generator
 
 
-class RegistrationAPIView(APIView):
+class RegistrationAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = RegistrationSerializer
 
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data
 
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and
@@ -34,13 +34,13 @@ class RegistrationAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class LoginAPIView(APIView):
+class LoginAPIView(CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = LoginSerializer
 
     def post(self, request):
-        user = request.data.get('user', {})
+        user = request.data
 
         # Notice here that we do not call `serializer.save()` like we did for
         # the registration endpoint. This is because we don't actually have
@@ -66,7 +66,7 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
-        serializer_data = request.data.get('user', {})
+        serializer_data = request.data
 
         # Here is that serialize, validate, save pattern we talked about
         # before.
@@ -97,15 +97,15 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object(request)
-        
+
         user = request.data
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        
+
         if serializer.is_valid():
             new_password = serializer.data["password"]
             email = serializer.data["email"]
-            
+
 
         user = User.objects.filter(email=serializer.data["email"]).first()
         is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
@@ -115,11 +115,11 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
             self.object.set_password(new_password)
             self.object.save()
             send_mail(
-                'SEAL TEAM', 
+                'SEAL TEAM',
                 f'Greetings, \n Your password has been changed successfully. Your new password is {new_password}. \
                 \n Keep it safe :-). \n Hope you have a lovely experience using our website.\
                 \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
-            return Response({'Success.':"Password Successfuly Reset"}, 
+            return Response({'Success.':"Password Successfuly Reset"},
             status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -140,6 +140,4 @@ class ForgotPasswordAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 

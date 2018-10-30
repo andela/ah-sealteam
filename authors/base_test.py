@@ -13,10 +13,9 @@ class BaseTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.new_user = {
-            "user": {'username': 'asheuh',
-                     'email': 'asheuh@gmail.com',
-                     'password': 'Mermaid@914'
-                     }
+            'username': 'asheuh',
+            'email': 'asheuh@gmail.com',
+            'password': 'Mermaid@914'
         }
         self.register_url = reverse('authentication:register')
         self.user_url = reverse('authentication:update_user')
@@ -31,10 +30,8 @@ class BaseTestCase(TestCase):
         User.objects.create_user(username=self.username,
                                  email=self.email, password=self.password)
         data_for_get_test = {
-            "user": {
                 "email": self.email,
                 "password": self.password
-            }
         }
         response = self.client.post(self.login_url, data_for_get_test, format='json')
         self.token = response.data["token"]

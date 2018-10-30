@@ -14,6 +14,27 @@ by leveraging the modern web.
 ## API Spec
 The preferred JSON object to be returned by the API should be structured as follows:
 
+## API Test Setup
+
+```Export environment variables
+$ export TEST_DATABASE='authors_haven_test_db'
+$ export DATABASE_USER='barryazah'
+$ export PASSWORD=''
+```
+
+```
+Run migrations
+
+$ python manage.py makemigrations
+$ python manage.py migrate
+```
+
+```
+Rub the tests
+
+$ pytest
+```
+
 ### Users (for authentication)
 
 ```source-json
@@ -175,10 +196,8 @@ Example request body:
 
 ```source-json
 {
-  "user":{
     "email": "jake@jake.jake",
     "password": "jakejake"
-  }
 }
 ```
 
@@ -194,11 +213,9 @@ Example request body:
 
 ```source-json
 {
-  "user":{
     "username": "Jacob",
     "email": "jake@jake.jake",
     "password": "jakejake"
-  }
 }
 ```
 
@@ -220,11 +237,9 @@ Example request body:
 
 ```source-json
 {
-  "user":{
     "email": "jake@jake.jake",
     "bio": "I like to skateboard",
     "image": "https://i.stack.imgur.com/xHWG8.jpg"
-  }
 }
 ```
 
@@ -306,12 +321,10 @@ Example request body:
 
 ```source-json
 {
-  "article": {
     "title": "How to train your dragon",
     "description": "Ever wonder how?",
     "body": "You have to believe",
     "tagList": ["reactjs", "angularjs", "dragons"]
-  }
 }
 ```
 
@@ -329,9 +342,7 @@ Example request body:
 
 ```source-json
 {
-  "article": {
     "title": "Did you train your dragon?"
-  }
 }
 ```
 
@@ -355,9 +366,7 @@ Example request body:
 
 ```source-json
 {
-  "comment": {
     "body": "His name was my name too."
-  }
 }
 ```
 
