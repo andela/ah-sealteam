@@ -2,12 +2,17 @@ from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView 
+from rest_framework.generics import RetrieveUpdateAPIView
+from .models import User
+from django.core.mail import send_mail
+
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
-)
+    LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer, ForgotPasswordSerializer )
+
+from django.contrib.auth.tokens import default_token_generator
 
 
 class RegistrationAPIView(APIView):
@@ -72,4 +77,69 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ResetPasswordAPIView(RetrieveUpdateAPIView):
+    # Allow any user (authenticated or not) to hit this endpoint.
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ResetPasswordSerializer
+
+    def get_object(self, request, queryset=None):
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        try:
+            obj = User.objects.get(email=serializer.data["email"])
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        obj = User.objects.get(email=serializer.data["email"])
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object(request)
+        
+        user = request.data
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        
+        if serializer.is_valid():
+            new_password = serializer.data["password"]
+            email = serializer.data["email"]
+            
+
+        user = User.objects.filter(email=serializer.data["email"]).first()
+        is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
+        if is_valid_token is False:
+            return Response({"Message" : "Invalid email address or token. Please check your email or generate another reset password email"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            self.object.set_password(new_password)
+            self.object.save()
+            send_mail(
+                'SEAL TEAM', 
+                f'Greetings, \n Your password has been changed successfully. Your new password is {new_password}. \
+                \n Keep it safe :-). \n Hope you have a lovely experience using our website.\
+                \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
+            return Response({'Success.':"Password Successfuly Reset"}, 
+            status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ForgotPasswordAPIView(APIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = ForgotPasswordSerializer
+
+    def post(self, request):
+        user = request.data
+
+        # Notice here that we do not call `serializer.save()` like we did for
+        # the registration endpoint. This is because we don't actually have
+        # anything to save. Instead, the `validate` method on our serializer
+        # handles everything we need.
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 

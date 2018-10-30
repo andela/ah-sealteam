@@ -6,6 +6,12 @@ from rest_framework import serializers
 
 from .models import User
 
+from django.core.mail import send_mail
+
+from django.contrib.auth.tokens import default_token_generator
+
+
+
 
 def valid_at_least_digit(value):
     """Make sure it contains a digit"""
@@ -76,6 +82,7 @@ class LoginSerializer(serializers.Serializer):
 
         # If no user was found matching this email/password combination then
         # `authenticate` will return `None`. Raise an exception in this case.
+        # import pdb; pdb.set_trace()
         if user is None:
             raise serializers.ValidationError(
                 'A user with this email and password was not found.'
@@ -152,3 +159,48 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializers resets password."""
+    password = serializers.CharField(max_length=128, required=True, min_length=8)
+    email = serializers.EmailField()
+    token = serializers.CharField(max_length=225)
+
+    class Meta:
+        fields = ['email', 'password', 'token']
+        
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=255)
+    token = serializers.CharField(max_length=225, required=False)
+    username = serializers.CharField(max_length=225, required=False, read_only=True)
+
+    
+    def validate(self, data):
+       
+        email = data.get('email', None)
+        
+        
+        if email is None:
+            raise serializers.ValidationError(
+                'An email address is required to continue.'
+            )
+
+        user = User.objects.filter(email=data.get('email', None)).first()
+        if user is None:
+            raise serializers.ValidationError(
+                'No records found with the email address. Create An Account To Continue.'
+            )
+        else:
+            token = default_token_generator.make_token(user)
+            send_mail(
+            'SEAL TEAM', 
+            f'Greetings, \n You have given us a request to reset your password. \n Kindly use the following token and url when resetting \
+            \n \n token: {token} \n link: /api/users/resetpassword \n \n. Hope you have a lovely experience using our website. \n \n Have Fun!!! \n Seal Team', \
+            'simplysealteam@gmail.com', [email], fail_silently=False)
+
+        return {
+            'email': "Instructions sent to " + email + ". Kindly check your email"
+
+        }
+

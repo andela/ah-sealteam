@@ -3,6 +3,8 @@ from rest_framework import status
 
 from authors.base_test import BaseTestCase
 
+from django.contrib.auth.tokens import default_token_generator
+
 
 class TestUserRegistration(BaseTestCase):
     """
@@ -92,3 +94,41 @@ class TestUserRegistration(BaseTestCase):
         assert response.status_code == 400
         assert response.data["errors"]["email"][0] == "user with this email already exists."
         assert response.data["errors"]["username"][0] == "user with this username already exists."
+
+    def test_forgot_password_request_with_valid_email(self):
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = {
+                "email": self.email
+        }
+        response = self.client.post(self.forgot_password_url, data, format='json')
+        self.assertEqual(response.status_code, 200)
+        assert response.data['email'] == "Instructions sent to testemail@gmail.com. Kindly check your email"
+
+
+    def test_forgot_password_request_with_invalid_email(self):
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = {
+                "email": "wrongemail@gmail.com"
+        }
+        response = self.client.post(self.forgot_password_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert response.data['errors']['error'][0] == "No records found with the email address. Create An Account To Continue."
+
+
+    def test_reset_password(self):
+        response = self.client.post(self.register_url, self.new_user, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = {
+                "email": self.email,
+                "password": self.password,
+                "token": "generated-token"
+        }
+        response = self.client.put(self.reset_password_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        print(response.data)
+        assert response.data["Message"] == "Invalid email address or token. Please check your email or generate another reset password email"
+        print(response)
+        
+        

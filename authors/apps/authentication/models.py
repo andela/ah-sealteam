@@ -29,7 +29,6 @@ class UserManager(BaseUserManager):
         user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
         user.save()
-
         return user
 
     def create_superuser(self, username, email, password):
@@ -48,6 +47,8 @@ class UserManager(BaseUserManager):
       user.save()
 
       return user
+        
+        
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -125,5 +126,3 @@ class User(AbstractBaseUser, PermissionsMixin):
             "exp": datetime.now() + timedelta(days=1)
         }
         return jwt.encode(data, settings.SECRET_KEY).decode('utf-8')
-
-
