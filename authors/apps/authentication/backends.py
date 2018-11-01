@@ -14,12 +14,12 @@ class JWTAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request):
         """This methods overrides the base method and does the authentication"""
-        token = authentication.get_authorization_header(request).decode('utf - 8')
+        token = authentication.get_authorization_header(request).decode('utf-8')
         if not token:
             return None
         try:
             token = token.split(" ")[1]
-            payload = jwt.decode(token, settings.SECRET_KEY)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms="HS256")
         except Exception as e:
             raise exceptions.AuthenticationFailed("Invalid token")
         try:

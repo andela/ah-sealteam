@@ -2,16 +2,16 @@
     "name": "ah-sealteam",
     "scripts": {},
     "env": {
-      "DB_HOST": {
+      "EMAIL_HOST_USER": {
         "required": true
       },
-      "DB_NAME": {
+      "EMAIL_HOST_PASSWORD": {
         "required": true
       },
-      "DB_PASS": {
+      "SECRET_KEY": {
         "required": true
       },
-      "DB_USER": {
+      "APP_SETTINGS":{
         "required": true
       }
     },
