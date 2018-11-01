@@ -103,6 +103,16 @@ class LoginSerializer(serializers.Serializer):
             "token": user.token
         }
 
+class CustomUserDetailsSerializer(serializers.ModelSerializer):
+    """
+    serializer class for django rest auth social login
+    """
+    email = serializers.CharField(max_length=255)
+    username = serializers.CharField(max_length=255)
+    token = serializers.CharField(max_length=255, read_only=True)
+    class Meta:
+        model = User
+        fields = ('email','username','token')
 
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
