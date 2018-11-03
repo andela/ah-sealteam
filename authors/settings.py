@@ -28,7 +28,6 @@ APP_SETTINGS = os.getenv("APP_SETTINGS")
 DEBUG = True if APP_SETTINGS == "development" else False
 
 ALLOWED_HOSTS = ['*']
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -161,6 +160,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    'PAGE_SIZE': 100
 }
 
 EMAIL_HOST = 'smtp.sendgrid.net'
@@ -168,7 +169,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-django_heroku.settings(locals())
+django_heroku.settings(locals(), logging=not DEBUG, databases=not DEBUG)
 SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
     'USE_SESSION_AUTH': False,

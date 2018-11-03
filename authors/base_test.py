@@ -34,7 +34,6 @@ class BaseTestCase(TestCase):
         self.reset_password_url = reverse("authentication:reset_password")
         self.forgot_password_url = reverse("authentication:forgot_password")
         self.article_url = reverse("articles:create_article")
-        # self.retrieve_article_url = reverse("articles:retrieve_article")
         # this user will be used to test login
         User.objects.create_user(username=self.username,
                                  email=self.email, password=self.password)
@@ -46,5 +45,6 @@ class BaseTestCase(TestCase):
         assert response.data.get("token")
         self.token = response.data["token"]
         assert response.status_code == 200
+
 
 

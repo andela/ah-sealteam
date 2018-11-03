@@ -14,14 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import include
-from django.urls import path
 from django.contrib import admin
 from django.urls import path
-
+from rest_framework_swagger.views import get_swagger_view
 from django.conf import settings
 from django.conf.urls.static import static
 
+schema_view = get_swagger_view(title='Authors Haven SealTeam API')
+
 urlpatterns = [
+    path('', schema_view),
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
     path('api/profiles/', include('authors.apps.profiles.urls')),

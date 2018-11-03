@@ -2,9 +2,9 @@
 Imports
 """
 from django.contrib import admin
-from .models import Article
 
-# Register your models here.
+from .models import Article, TaggedItem
+
 
 class ArticleAdmin(admin.ModelAdmin):
     """
@@ -12,4 +12,6 @@ class ArticleAdmin(admin.ModelAdmin):
     """
     list_display = ('title', 'description', 'body')
 
-admin.register(Article, ArticleAdmin)
+
+admin.site.register(Article, ArticleAdmin)
+admin.site.register(TaggedItem)

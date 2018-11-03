@@ -9,5 +9,5 @@ app_name = 'articles'
 
 urlpatterns = [
     path('', ArticleAPIView.as_view(), name='create_article'),
-    path('<int:pk>', ArticleRetrieveAPIView.as_view(), name="retrieve_article"),
+    path('<slug:slug>', ArticleRetrieveAPIView.as_view(), name="retrieve_article"),
 ]
