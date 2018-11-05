@@ -19,6 +19,7 @@ class BaseTestCase(TestCase):
         }
         self.register_url = reverse('authentication:register')
         self.user_url = reverse('authentication:update_user')
+
         self.username = "mike"
         self.wrongmail = "dennis mail.com"
         self.email = "testemail@gmail.com"
@@ -29,15 +30,13 @@ class BaseTestCase(TestCase):
         # this user will be used to test login
         User.objects.create_user(username=self.username,
                                  email=self.email, password=self.password)
-        data_for_get_test = {
+        self.data_for_get_test = {
                 "email": self.email,
                 "password": self.password
         }
-        response = self.client.post(self.login_url, data_for_get_test, format='json')
-        self.token = response.data["token"]
-        self.assertEqual(response.status_code, 200)
-        assert response.data['email'] == self.email
-        assert response.data['username'] == self.username
+        response = self.client.post(self.login_url, self.data_for_get_test, format='json')
         assert response.data.get("token")
+        self.token = response.data["token"]
+        assert response.status_code == 200
 
 

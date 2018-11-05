@@ -1,4 +1,7 @@
+import re
+
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -10,7 +13,8 @@ from rest_framework.generics import CreateAPIView
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer, ForgotPasswordSerializer )
+    LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer,
+    ForgotPasswordSerializer)
 
 from django.contrib.auth.tokens import default_token_generator
 
@@ -23,12 +27,25 @@ class RegistrationAPIView(CreateAPIView):
 
     def post(self, request):
         user = request.data
+        password = user.get("password")
+        email = user.get("email")
+        username =user.get("username")
+        if not email:
+            raise ValidationError({"email": "Please provide an email"})
+        if not username:
+            raise ValidationError({"username": "Please provide a an username"})
+        if not password:
+            raise ValidationError({"password": "Please provide a password"})
 
+        if not re.match("^(?=.*\d).{8,20}$", password):
+            raise ValidationError({"password": "Password must be between 8 - 20"
+                                               " characters and at least 1 digit"})
         # The create serializer, validate serializer, save serializer pattern
         # below is common and you will see it a lot throughout this course and
         # your own work later on. Get familiar with it.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -78,6 +95,7 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class ResetPasswordAPIView(RetrieveUpdateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
@@ -106,11 +124,12 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
             new_password = serializer.data["password"]
             email = serializer.data["email"]
 
-
         user = User.objects.filter(email=serializer.data["email"]).first()
         is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
         if is_valid_token is False:
-            return Response({"Message" : "Invalid email address or token. Please check your email or generate another reset password email"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "Invalid email address or token. Please check your "
+                                        "email or generate another reset password email"},
+                            status=status.HTTP_400_BAD_REQUEST)
         else:
             self.object.set_password(new_password)
             self.object.save()
@@ -119,10 +138,9 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
                 f'Greetings, \n Your password has been changed successfully. Your new password is {new_password}. \
                 \n Keep it safe :-). \n Hope you have a lovely experience using our website.\
                 \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
-            return Response({'Success.':"Password Successfuly Reset"},
-            status=status.HTTP_200_OK)
+            return Response({'Success.': "Password Successfuly Reset"},
+                            status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -140,4 +158,3 @@ class ForgotPasswordAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
