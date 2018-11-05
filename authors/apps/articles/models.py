@@ -104,6 +104,9 @@ class Article(models.Model):
         super().save(*args, **kwargs)
 
 def article_save(sender, instance, *args, **kwargs):
+    """
+    Saves the article instance of the read time to the database
+    """
     if instance.body:
         markdown_text = instance.get_markdown()
         read_time_str = readtime.of_html(markdown_text)
