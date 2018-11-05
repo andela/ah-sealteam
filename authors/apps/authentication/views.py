@@ -3,9 +3,9 @@ import re
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from .models import User
 from django.core.mail import send_mail
 
@@ -96,29 +96,21 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ResetPasswordAPIView(RetrieveUpdateAPIView):
+class ResetPasswordAPIView(UpdateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = ResetPasswordSerializer
 
-    def get_object(self, request, queryset=None):
+    def update(self, request, *args, **kwargs):
         user = request.data
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+
         try:
             obj = User.objects.get(email=serializer.data["email"])
         except User.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        obj = User.objects.get(email=serializer.data["email"])
-        return obj
-
-    def update(self, request, *args, **kwargs):
-        self.object = self.get_object(request)
-
-        user = request.data
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
+            return Response({"Message":"User With The Email Address Was Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             new_password = serializer.data["password"]
@@ -131,8 +123,8 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
                                         "email or generate another reset password email"},
                             status=status.HTTP_400_BAD_REQUEST)
         else:
-            self.object.set_password(new_password)
-            self.object.save()
+            obj.set_password(new_password)
+            obj.save()
             send_mail(
                 'SEAL TEAM',
                 f'Greetings, \n Your password has been changed successfully. Your new password is {new_password}. \
@@ -142,7 +134,8 @@ class ResetPasswordAPIView(RetrieveUpdateAPIView):
                             status=status.HTTP_200_OK)
 
 
-class ForgotPasswordAPIView(APIView):
+
+class ForgotPasswordAPIView(CreateAPIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = ForgotPasswordSerializer

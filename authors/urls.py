@@ -13,16 +13,19 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import include, url
+from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-
+from rest_framework_swagger.views import get_swagger_view
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^api/', include('authors.apps.authentication.urls')),
-    path('api/profiles/', include('authors.apps.profiles.urls'))
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+schema_view = get_swagger_view(title='Authors Haven SealTeam API')
 
+urlpatterns = [
+    path('', schema_view),
+    path('admin/', admin.site.urls),
+    path('api/', include('authors.apps.authentication.urls')),
+    path('api/profiles/', include('authors.apps.profiles.urls')),
+    path('api/articles/', include('authors.apps.articles.urls')),
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

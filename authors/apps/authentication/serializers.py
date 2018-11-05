@@ -169,8 +169,6 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=255)
-    token = serializers.CharField(max_length=225, required=False)
-    username = serializers.CharField(max_length=225, required=False, read_only=True)
 
     def validate(self, data):
 
@@ -196,8 +194,4 @@ class ForgotPasswordSerializer(serializers.Serializer):
                 f' Hope you have a lovely experience using our website. \n \n '
                 f'Have Fun!!! \n Seal Team',
                 'simplysealteam@gmail.com', [email], fail_silently=False)
-
-        return {
-            'email': "Instructions sent to " + email + ". Kindly check your email"
-
-        }
+        return {'email': "Instructions sent to " + email + ". Kindly check your email"}
