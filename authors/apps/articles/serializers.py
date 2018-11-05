@@ -54,6 +54,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'updatedAt',
             'favorited',
             'body',
+            'read_time',
             'author'
         )
 

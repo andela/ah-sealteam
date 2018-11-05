@@ -2,11 +2,13 @@
 Imports
 """
 import random
+import readtime
 import string
+import markdown
 import cloudinary
 from django.dispatch import receiver
-from django.db.models.signals import pre_delete
-import markdown
+from django.utils.safestring import mark_safe
+from django.db.models.signals import pre_delete, pre_save
 from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from cloudinary.models import CloudinaryField
@@ -57,6 +59,8 @@ class Article(models.Model):
     slug = models.SlugField(max_length=270, blank=True, null=True)
     updatedAt = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(default=timezone.now)
+    read_time = models.CharField(default='0 min read', blank=True, 
+            null=True, max_length=20)
     favorited = models.BooleanField(default=False)
     content_html = models.TextField(editable=False)
 
@@ -83,16 +87,29 @@ class Article(models.Model):
             return self.unique_slug_generator(new_slug)
         return slug
 
+    def get_markdown(self):
+        body = self.body
+        content_html = markdown.markdown(body)
+        return mark_safe(content_html)
+
     def save(self, *args, **kwargs):
         """
         Overidding the save to do our own things
         :type kwargs: save object
         """
-        self.content_html = markdown.markdown(self.body)
+        self.content_html = self.get_markdown()
         if not self.id:
             # check id to ensure update does not update deadlinks
             self.slug = self.unique_slug_generator()
         super().save(*args, **kwargs)
+
+def article_save(sender, instance, *args, **kwargs):
+    if instance.body:
+        markdown_text = instance.get_markdown()
+        read_time_str = readtime.of_html(markdown_text)
+        instance.read_time = read_time_str
+
+pre_save.connect(article_save, sender=Article)
 
 class Photo(models.Model):
     """
@@ -113,5 +130,3 @@ class Photo(models.Model):
 @receiver(pre_delete, sender=Photo)
 def delete_image(sender, instance, **kwargs):
     cloudinary.uploader.destroy(instance.image.public_id)
-
-
