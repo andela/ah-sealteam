@@ -2,14 +2,26 @@ import re
 
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView
+from django.views.generic import TemplateView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import User
 from django.core.mail import send_mail
-
 from rest_framework.generics import CreateAPIView
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
+from rest_auth.registration.views import (
+    SocialLoginView, SocialConnectView, SocialAccountListView,
+    SocialAccountDisconnectView
+)
+from rest_auth.social_serializers import (
+    TwitterLoginSerializer, TwitterConnectSerializer
+)
+from rest_auth.serializers import LoginSerializer
 
 from .renderers import UserJSONRenderer
 from .serializers import (
@@ -17,7 +29,6 @@ from .serializers import (
     ForgotPasswordSerializer)
 
 from django.contrib.auth.tokens import default_token_generator
-
 
 class RegistrationAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
@@ -151,3 +162,29 @@ class ForgotPasswordAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GithubLogin(SocialLoginView):
+    adapter_class = GitHubOAuth2Adapter
+
+class GithubConnect(SocialConnectView):
+    adapter_class = GitHubOAuth2Adapter
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+ 
+class GoogleConnect(SocialConnectView):
+    adapter_class = GoogleOAuth2Adapter
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+
+class FacebookConnect(SocialConnectView):
+    adapter_class = FacebookOAuth2Adapter
+
+class TwitterLogin(SocialLoginView):
+    adapter_class = TwitterOAuthAdapter
+    serializer_class = TwitterLoginSerializer
+
+class TwitterConnect(SocialConnectView):
+    adapter_class = TwitterOAuthAdapter
+    serializer_class = TwitterConnectSerializer

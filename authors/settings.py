@@ -14,6 +14,8 @@ import os
 
 import django_heroku
 
+import dj_database_url
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '7pgozr2jn7zs_o%i8id6=rddie!*0f0qy3$oy$(8231i^4*@u3'
+SECRET_KEY = os.getenv("SECRET_KEY") or "secret"
 
 APP_SETTINGS = os.getenv("APP_SETTINGS")
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -37,11 +39,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'corsheaders',
     'django_extensions',
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework.authtoken',
+    'rest_auth',
+    'rest_auth.registration',
+    
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.twitter',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
 
     'authors.apps.authentication',
     'authors.apps.core',
@@ -50,6 +64,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'djdev_panel.middleware.DebugMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
@@ -58,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware'
 ]
 
 ROOT_URLCONF = 'authors.urls'
@@ -65,7 +81,7 @@ ROOT_URLCONF = 'authors.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,22 +95,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'authors.wsgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': '5432'
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -159,6 +159,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'authors.apps.authentication.backends.JWTAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 100
@@ -169,7 +170,53 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-django_heroku.settings(locals(), logging=not DEBUG, databases=not DEBUG)
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        'SCOPE': ['user', 'repo'],
+        'FIELDS': [
+            'email',
+            'username'
+        ]
+        },
+
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
+        'FIELDS': [
+            'id',
+            'email',
+        ],
+        'EXCHANGE_TOKEN': True,
+        'LOCALE_FUNC': lambda request: 'en_US',
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v3.2',
+    },
+    'google': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email'],
+        'FIELDS': [
+            'email'
+        ]
+    }
+}
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+SITE_ID = 1
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+SOCIALACCOUNT_ADAPTER = 'authors.apps.authentication.adapter.SocialAccountAdapter'
+REST_USE_JWT = True
+ACCOUNT_SIGNUP_FORM_CLASS = 'authors.apps.authentication.forms.CustomUserCreationForm'
 SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
     'USE_SESSION_AUTH': False,
@@ -182,3 +229,10 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+REST_AUTH_SERIALIZERS = {
+    "USER_DETAILS_SERIALIZER":'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
+}
+django_heroku.settings(locals(), logging=not DEBUG)
+
+locals()['DATABASES']['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), ssl_require=not DEBUG)
