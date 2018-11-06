@@ -9,7 +9,6 @@ class BaseTestCase(TestCase):
     The base test case that all the test classes will use throughout
     the project
     """
-
     def setUp(self):
         self.client = APIClient()
         self.new_user = {
