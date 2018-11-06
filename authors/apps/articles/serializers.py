@@ -8,8 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
 from authors.apps.articles.utils import ChoicesField
-from .models import Article, TaggedItem, ArticleRating, Photo
-
+from .models import Article, TaggedItem, ArticleRating, Photo, LikeDislike
 
 class ArticlePagination(PageNumberPagination):
     """
@@ -100,6 +99,7 @@ class PhotoSerializer(serializers.Serializer):
     class Meta:
         model = Photo
         fields = ('article',)
+
 class RatingSerializer(serializers.ModelSerializer):
     article = serializers.ReadOnlyField(source='article.id')
     user = serializers.ReadOnlyField(source="user.username")
@@ -124,3 +124,12 @@ class RatingSerializer(serializers.ModelSerializer):
                                   "Consider updating your rating")
         instance = ArticleRating.objects.create(**validated_data)
         return instance
+
+class LikeDislikeSerializer(serializers.Serializer):
+    """
+    serializer class for the Like Dislike model
+    """
+    class Meta:
+        model = LikeDislike
+        pass
+    
