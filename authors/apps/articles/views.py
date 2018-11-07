@@ -1,6 +1,7 @@
 """ This are the views for articles"""
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
@@ -8,7 +9,6 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
 from rest_framework import status
-from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from django.contrib.contenttypes.models import ContentType
@@ -287,6 +287,8 @@ class ArticleCommentUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView, CreateAPIV
     def get_object(self):
         article = get_object_or_404(Article, slug=self.kwargs["slug"])
         comment_set = Comment.objects.filter(article__id=article.id)
+        if not comment_set:
+            raise Http404
         for comment in comment_set:
             new_comment = get_object_or_404(Comment, pk=self.kwargs["id"])
             if comment.id == new_comment.id:
@@ -298,11 +300,12 @@ class ArticleCommentUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView, CreateAPIV
         context = {'request': request}
         comment = self.get_object()
         context['parent'] = comment = Comment.objects.get(pk=comment.id)
-        serializer = self.serializer_class(data=data, context=context)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=self.request.user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if context['parent']:
+            serializer = self.serializer_class(data=data, context=context)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(author=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"Message":"Comment with the specifid id was not found"})
 
 
     def update(self, request, slug=None, pk=None, **kwargs):

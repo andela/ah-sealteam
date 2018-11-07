@@ -74,7 +74,6 @@ class CommentSerializer(serializers.ModelSerializer):
             serializer = ProfileSerializer(profile)
             return serializer.data
         except Exception as e:
-            print(e)
             return {}
 
     def create(self, validated_data):

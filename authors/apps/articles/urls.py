@@ -19,6 +19,6 @@ urlpatterns = [
     path('<slug:slug>/dislike/',
          LikeDislikeView.as_view(model=Article, vote_type=LikeDislike.DISLIKE),
          name='article_dislike'),
-    path('<slug:slug>/comment/', ArticleCommentAPIView.as_view(), name='comment_article'),
-    path('<slug:slug>/comment/<int:id>/', ArticleCommentUpdateDeleteAPIView.as_view(), name='update_comment')
+    path('<slug:slug>/comments/', ArticleCommentAPIView.as_view(), name='comment_article'),
+    path('<slug:slug>/comments/<int:id>/', ArticleCommentUpdateDeleteAPIView.as_view(), name='update_comment')
 ]

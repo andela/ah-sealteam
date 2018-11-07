@@ -8,6 +8,18 @@ class TestComments(BaseTestCase):
     Testcase for user to comment on an article
     """
 
+    def test_comment_fields_should_be_there(self):
+        """test all fields required to comment on an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('articles:comment_article', kwargs={'slug': response.data['slug']})
+        data = {
+
+        }
+        response2 = self.client.post(url, data)
+        self.assertEqual(response2.status_code, 400)
+        assert(response2.data['body'][0] == "This field is required.")
+
     def test_user_can_comment_on_an_article(self):
         """A user should be able to add a comment to an article"""
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
@@ -15,6 +27,16 @@ class TestComments(BaseTestCase):
         url = reverse('articles:comment_article', kwargs={'slug': response.data['slug']})
         response2 = self.client.post(url, self.new_comment)
         self.assertEqual(response2.status_code, 201)
+
+
+    def test_user_cannot_comment_on_an_invalid_article(self):
+        """A user should be able to add a comment to an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('articles:comment_article', kwargs={'slug': 'slug'})
+        response2 = self.client.post(url, self.new_comment)
+        self.assertEqual(response2.status_code, 404)
+        assert(response2.data['detail'] == "Not found.")
 
 
     def test_user_can_get_comments_of_an_article(self):
@@ -121,3 +143,22 @@ class TestComments(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token2)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_user_cannot_get_a_non_existing_comment(self):
+        """test that a user can get a comment with its threads"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('articles:comment_article', kwargs={'slug': response.data['slug']})
+        response2 = self.client.post(url, self.new_comment)
+        url = reverse('articles:update_comment', kwargs={'slug': response.data['slug'], 'id':5})
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token2)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404) 
+        assert(response.data['detail'] == "Not found.")
+
+    def  test_user_is_authenticated(self):
+        """test that a user is authenticated"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + "mytoken")
+        response = self.client.post(self.article_url, self.new_article)
+        self.assertEqual(response.status_code, 403)
+        assert(response.data['detail'] == "Invalid token")

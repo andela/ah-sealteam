@@ -65,5 +65,11 @@ class BaseTestCase(TestCase):
         self.token2 = response2.data["token"]
         assert response2.status_code == 200
 
+        self.client.post(self.register_url, self.second_test_data, format='json')
+        response2 = self.client.post(self.login_url, self.second_test_data, format='json')
+        assert response2.data.get("token")
+        self.token2 = response2.data["token"]
+        assert response2.status_code == 200
+
 
 
