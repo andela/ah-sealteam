@@ -18,8 +18,6 @@ from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
 from ..authentication.models import User
-
-from mptt.models import MPTTModel, TreeForeignKey
 from django.db.models.signals import pre_save
 
 
@@ -211,6 +209,8 @@ class ArticleRating(models.Model):
     class Meta:
         unique_together = ("user", "article")
         ordering = ('-rated_at', '-id')
+
+        
 class Comment(models.Model):
     parent = models.ForeignKey('self', null=True, blank=False, on_delete=models.CASCADE, related_name='thread')
     article = models.ForeignKey(Article, related_name='comment', null=True, blank=True, on_delete=models.CASCADE) 
