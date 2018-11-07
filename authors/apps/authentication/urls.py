@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     LoginAPIView, RegistrationAPIView, UserRetrieveUpdateAPIView, ResetPasswordAPIView, ForgotPasswordAPIView,
     FacebookLogin, FacebookConnect, GithubLogin, GithubConnect,
-    GoogleLogin, GoogleConnect, TwitterLogin, TwitterConnect
+    GoogleLogin, GoogleConnect, TwitterLogin, TwitterConnect, activate
 )
 from rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
@@ -29,8 +29,9 @@ urlpatterns = [
     path('social-login/google/', GoogleLogin.as_view(), name='gg_login'),
     path('social-login/google/connect/', GoogleConnect.as_view(), name='gg_connect'),
     path('social-login/github/', GithubLogin.as_view(), name='git_login'),
-    path('social-login/github/connect/', GithubConnect.as_view(), name='git_connect'),  
+    path('social-login/github/connect/', GithubConnect.as_view(), name='git_connect'),
     path('socialaccounts/', SocialAccountListView.as_view(), name='social_account_list'),
     path('socialaccounts/<int:pk>/disconnect/', SocialAccountDisconnectView.as_view(),
-        name='social_account_disconnect'),
+         name='social_account_disconnect'),
+    path('activate/<uidb64>/<token>', activate, name='activate'),
 ]

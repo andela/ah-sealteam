@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
     'rest_auth.registration',
-    
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -182,7 +182,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'email',
             'username'
         ]
-        },
+    },
 
     'facebook': {
         'METHOD': 'oauth2',
@@ -207,7 +207,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 SITE_ID = 1
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
@@ -231,8 +231,11 @@ SWAGGER_SETTINGS = {
 }
 
 REST_AUTH_SERIALIZERS = {
-    "USER_DETAILS_SERIALIZER":'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
+    "USER_DETAILS_SERIALIZER": 'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
 }
 django_heroku.settings(locals(), logging=not DEBUG)
 
 locals()['DATABASES']['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), ssl_require=not DEBUG)
+import datetime
+
+TOKEN_EXPIRE_TIME = datetime.timedelta(seconds=3)

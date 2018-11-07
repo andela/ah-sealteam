@@ -1,12 +1,17 @@
-import jwt
-
+import os
 from datetime import datetime, timedelta
 
+import jwt
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
+from django.core.mail import send_mail
 from django.db import models
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
 
 class UserManager(BaseUserManager):
     """
@@ -17,7 +22,6 @@ class UserManager(BaseUserManager):
     All we have to do is override the `create_user` function which we will use
     to create `User` objects.
     """
-
     def create_user(self, username, email, password=None):
         """Create and return a `User` with an email, username and password."""
         if username is None:
@@ -29,6 +33,23 @@ class UserManager(BaseUserManager):
         user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
         user.save()
+
+        domain = os.getenv("DOMAIN")
+        uid = urlsafe_base64_encode(force_bytes(user.pk)).decode("utf-8"),
+        message = render_to_string('email_confirm_html.html', {
+            'user': user,
+            'domain': domain,
+            'uid': uid,
+            'token': user.token(),
+        })
+        mail_subject = 'Activate your account.'
+        to_email = user.email
+        send_mail(
+            mail_subject,
+            'Verify your Account',
+            'simplysealteam@gmail.com',
+            [to_email, ],
+            html_message=message, fail_silently=False)
         return user
 
     def create_superuser(self, username, email, password):
@@ -44,7 +65,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(username, email, password)
         user.is_superuser = True
         user.is_staff = True
-        user.save()
+        # user.save()
 
         return user
 
@@ -79,6 +100,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # A timestamp reprensenting when this object was last updated.
     updated_at = models.DateTimeField(auto_now=True)
+
+    # when the email is verified it will be checked
+    email_verified = models.BooleanField(default=False)
 
     # More fields required by Django when specifying a custom user model.
 
