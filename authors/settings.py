@@ -60,7 +60,8 @@ INSTALLED_APPS = [
     'authors.apps.authentication',
     'authors.apps.core',
     'authors.apps.profiles',
-    'authors.apps.articles'
+    'authors.apps.articles',
+    'mptt'
 ]
 
 MIDDLEWARE = [

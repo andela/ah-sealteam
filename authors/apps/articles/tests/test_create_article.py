@@ -12,7 +12,7 @@ class TestCreateArticle(BaseTestCase):
 
     def test_user_create_article(self):
         """
-        Testing. Can i user create an article?
+        Testing. Can a user create an article?
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(self.article_url, self.new_article, format='json')
@@ -60,3 +60,6 @@ class TestCreateArticle(BaseTestCase):
         response1 = self.client.delete(url)
         self.assertEqual(response1.data['message'], {'Article was deleted successful'})
         self.assertEqual(response1.status_code, 200)
+
+
+
