@@ -4,8 +4,12 @@ Imports
 
 """
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
-from .models import Article, TaggedItem, Photo
+
+from authors.apps.articles.utils import ChoicesField
+from .models import Article, TaggedItem, ArticleRating, Photo
+
 
 class ArticlePagination(PageNumberPagination):
     """
@@ -41,7 +45,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     """
     author = serializers.ReadOnlyField(source='author.username')
     tags = TaggedOjectRelatedField(many=True)
-    
+
     class Meta:
         model = Article
 
@@ -87,10 +91,36 @@ class ImageFileSerializer(serializers.Serializer):
     def create(self, validated_data):
         pass
 
+
 class PhotoSerializer(serializers.Serializer):
     """
     This class performs the serialization of the images
     """
+
     class Meta:
         model = Photo
         fields = ('article',)
+class RatingSerializer(serializers.ModelSerializer):
+    article = serializers.ReadOnlyField(source='article.id')
+    user = serializers.ReadOnlyField(source="user.username")
+    rate = ChoicesField(choices=ArticleRating.FIVE_REVIEWS)
+    comment = serializers.CharField(required=False)
+
+    class Meta:
+        model = ArticleRating
+        fields = (
+            'id',
+            'article',
+            'user',
+            'rate',
+            'comment'
+        )
+
+    def create(self, validated_data):
+        user_rates = ArticleRating.objects.filter(user=validated_data["user"],
+                                                  article=validated_data["article"])
+        if user_rates.exists():
+            raise ValidationError("Not allowed to rate twice. "
+                                  "Consider updating your rating")
+        instance = ArticleRating.objects.create(**validated_data)
+        return instance

@@ -40,7 +40,7 @@ class RegistrationAPIView(CreateAPIView):
         user = request.data
         password = user.get("password")
         email = user.get("email")
-        username =user.get("username")
+        username = user.get("username")
         if not email:
             raise ValidationError({"email": "Please provide an email"})
         if not username:
@@ -121,7 +121,7 @@ class ResetPasswordAPIView(UpdateAPIView):
         try:
             obj = User.objects.get(email=serializer.data["email"])
         except User.DoesNotExist:
-            return Response({"Message":"User With The Email Address Was Not Found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"Message": "User With The Email Address Was Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             new_password = serializer.data["password"]
@@ -143,7 +143,6 @@ class ResetPasswordAPIView(UpdateAPIView):
                 \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
             return Response({'Success.': "Password Successfuly Reset"},
                             status=status.HTTP_200_OK)
-
 
 
 class ForgotPasswordAPIView(CreateAPIView):

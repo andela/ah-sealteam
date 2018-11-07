@@ -44,6 +44,8 @@ class BaseTestCase(TestCase):
         assert response.data.get("token")
         self.token = response.data["token"]
         assert response.status_code == 200
+        self.user_url = reverse('authentication:update_user')
+
 
 
 

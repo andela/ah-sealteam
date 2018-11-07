@@ -176,7 +176,6 @@ class ResetPasswordSerializer(serializers.Serializer):
     class Meta:
         fields = ['email', 'password', 'token']
 
-
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=255)
 
