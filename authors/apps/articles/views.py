@@ -1,15 +1,18 @@
 """ This are the views for articles"""
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 
 from authors.apps.articles.permissions import IsAuthorOrReadOnly
-
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.response import Response
+from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly
 from .models import Article
+from .models import ArticleRating
 from .serializers import ArticleSerializer
+from .serializers import RatingSerializer
 
 
 class ArticlePagination(PageNumberPagination):
@@ -70,6 +73,7 @@ class ArticleRetrieveAPIView(RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, slug=None):
         """
+        Retrieve a single article from the application
         """
         article = get_object_or_404(self.queryset, slug=slug)
         serializer = self.serializer_class(article)
@@ -91,3 +95,95 @@ class ArticleRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         article_delete = self.get_object()
         article_delete.delete()
         return Response({"message": {"Article was deleted successful"}}, status.HTTP_200_OK)
+
+
+class RateAPIView(CreateAPIView):
+    """
+    A user can post an artcle once they have an account in the application
+    params: ['title', 'description', 'body']
+    """
+    # queryset = ArticleRating.objects.filter(a)
+    permission_classes = (IsAuthenticatedOrReadOnly, NotArticleOwner)
+    serializer_class = RatingSerializer
+    pagination_class = ArticlePagination
+
+    def get_queryset(self):
+        """Overriding queryset to get only the article ratings"""
+        return ArticleRating.objects.filter(article=self.get_object())
+
+    def get_object(self):
+        """Overriding object to get article_id"""
+        obj = get_object_or_404(Article, slug=self.kwargs["slug"])
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def post(self, request, **kwargs):
+        """
+        Create a new article in the application
+        """
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        article = self.get_object()
+        if serializer.is_valid():
+            serializer.save(user=self.request.user, article=article)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_average_rating(self):
+        """This function will calculate average"""
+        queryset = ArticleRating.objects.filter(article_id=self.get_object())
+        return queryset.aggregate(Avg('rate')).get("rate__avg")
+
+    def get(self, request, slug):
+        """
+        Get all the articles ever posted in the application
+        """
+        rate = self.request.query_params.get('rate', None)
+        if rate is not None:
+            return Response({"average": self.get_average_rating()})
+
+        serializer = self.serializer_class(self.get_queryset(), many=True)
+        page = self.paginate_queryset(self.get_queryset())
+        if page is not None:
+            serializer = self.serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class RateRetrieveAPIView(RetrieveUpdateDestroyAPIView):
+    """
+    Views to retrieve a single article in the application
+    """
+    queryset = ArticleRating.objects.all()
+    permission_classes = (IsAuthenticatedOrReadOnly, IsRaterOrReadOnly)
+    serializer_class = RatingSerializer
+
+    def get_object(self):
+        """Get ratings"""
+        obj = get_object_or_404(self.queryset, pk=self.kwargs["rate_id"])
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def retrieve(self, request, pk=None, **kwargs):
+        """
+        Retrieve a single rating
+        """
+        serializer = self.serializer_class(self.get_object())
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None, **kwargs):
+        """This function will update rating"""
+        rate_update = self.get_object()
+        serializer = self.serializer_class(
+            rate_update, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk=None, **kwargs):
+        """This function will delete the article"""
+        rate_delete = self.get_object()
+        rate_delete.delete()
+        return Response({"message": "Your rate was successfully deleted"}, status.HTTP_200_OK)

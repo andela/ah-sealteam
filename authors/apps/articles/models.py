@@ -14,7 +14,6 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from cloudinary.models import CloudinaryField
 from django.utils import timezone
 from django.utils.text import slugify
-
 from ..authentication.models import User
 from django.contrib.contenttypes.models import ContentType
 
@@ -42,6 +41,7 @@ class TaggedItem(models.Model):
 def random_string_generator(size=4, chars=string.ascii_lowercase + string.digits):
     """Generate random string for slug"""
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 class Article(models.Model):
     """
@@ -130,6 +130,27 @@ class Photo(models.Model):
             return self.caption
         return "No caption provided"
 
+
 @receiver(pre_delete, sender=Photo)
 def delete_image(sender, instance, **kwargs):
     cloudinary.uploader.destroy(instance.image.public_id)
+
+
+class ArticleRating(models.Model):
+    FIVE_REVIEWS = (
+        (5, 5),
+        (4, 4),
+        (3, 3),
+        (2, 2),
+        (1, 1),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    rate = models.PositiveIntegerField(choices=FIVE_REVIEWS, default='5')
+    rated_at = models.DateTimeField(default=timezone.now)
+    comment = models.CharField(max_length=500, null=True, blank=True)
+
+    class Meta:
+        unique_together = ("user", "article")
+        ordering = ('-rated_at', '-id')
