@@ -3,7 +3,7 @@
 """
 
 from django.urls import path
-from .views import ArticleAPIView, ArticleRetrieveAPIView, LikeDislikeView, RateAPIView, RateRetrieveAPIView
+from .views import ArticleAPIView, ArticleRetrieveAPIView, LikeDislikeView, RateAPIView, RateRetrieveAPIView, ArticleCommentAPIView, ArticleCommentUpdateDeleteAPIView
 from .models import Article, LikeDislike
 
 app_name = 'articles'
@@ -18,5 +18,7 @@ urlpatterns = [
          name='article_like'),
     path('<slug:slug>/dislike/',
          LikeDislikeView.as_view(model=Article, vote_type=LikeDislike.DISLIKE),
-         name='article_dislike')
+         name='article_dislike'),
+    path('<slug:slug>/comments/', ArticleCommentAPIView.as_view(), name='comment_article'),
+    path('<slug:slug>/comments/<int:id>/', ArticleCommentUpdateDeleteAPIView.as_view(), name='update_comment')
 ]
