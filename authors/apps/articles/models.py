@@ -5,17 +5,15 @@ import random
 import readtime
 import string
 import markdown
-import cloudinary
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
-from django.db.models.signals import pre_delete, pre_save
+from django.db.models.signals import pre_save
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
-from cloudinary.models import CloudinaryField
 from django.utils import timezone
 from django.utils.text import slugify
-from django.contrib.contenttypes.models import ContentType
-
+from django.db.models import Sum
+from django.utils.translation import ugettext_lazy as _
 from ..authentication.models import User
 from authors.apps.likedislike.models import LikeDislike
 
@@ -53,16 +51,17 @@ class Article(models.Model):
     """
     author = models.ForeignKey(User, related_name='article', blank=True,
                                null=True, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, unique=True)
-    description = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=50, unique=True)
+    description = models.CharField(max_length=200, unique=True)
     body = models.TextField(unique=True)
-    tags = GenericRelation(TaggedItem)
+    tags = GenericRelation(TaggedItem, related_query_name='articles')
     createdAt = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(max_length=270, blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
     updatedAt = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(default=timezone.now)
-    read_time = models.CharField(default='0 min read', blank=True, 
-            null=True, max_length=20)
+    read_time = models.CharField(default='0 min read', blank=True,
+                                 null=True, max_length=20)
     favorited = models.BooleanField(default=False)
     content_html = models.TextField(editable=False)
     votes = GenericRelation(LikeDislike, related_query_name='articles')
@@ -91,6 +90,9 @@ class Article(models.Model):
         return slug
 
     def get_markdown(self):
+        """
+        Creates the markdown of the body
+        """
         body = self.body
         content_html = markdown.markdown(body)
         return mark_safe(content_html)
@@ -117,27 +119,6 @@ def article_save(sender, instance, *args, **kwargs):
 
 pre_save.connect(article_save, sender=Article)
 
-class Photo(models.Model):
-    """
-    Users may wish to add images to their article.
-    This class creates the power for users to do that
-    Can add multiple images
-
-    """
-    article = models.ForeignKey(Article, related_name='article_image', on_delete=models.CASCADE)
-    image = CloudinaryField('image')
-    caption = models.CharField(max_length=100, blank=True)
-
-    def __str__(self):
-        if self.caption != "":
-            return self.caption
-        return "No caption provided"
-
-
-@receiver(pre_delete, sender=Photo)
-def delete_image(sender, instance, **kwargs):
-    cloudinary.uploader.destroy(instance.image.public_id)
-
 
 class ArticleRating(models.Model):
     FIVE_REVIEWS = (
@@ -153,6 +134,7 @@ class ArticleRating(models.Model):
     rate = models.PositiveIntegerField(choices=FIVE_REVIEWS, default='5')
     rated_at = models.DateTimeField(default=timezone.now)
     comment = models.CharField(max_length=500, null=True, blank=True)
+    objects = models.Manager()
 
     class Meta:
         unique_together = ("user", "article")

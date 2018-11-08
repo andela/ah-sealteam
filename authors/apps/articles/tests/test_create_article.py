@@ -44,9 +44,9 @@ class TestCreateArticle(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         data = {
             "title":" ",
-	        "description":"another",
-	        "tags":["one"],
-	        "body":"another"
+            "description":"another",
+            "tags":["one"],
+            "body":"another"
         }
         response = self.client.post(self.article_url, data, format='json')
         self.assertEqual(response.status_code, 400)
@@ -154,6 +154,3 @@ class TestCreateArticle(BaseTestCase):
         response1 = self.client.delete(url)
         self.assertEqual(response1.status_code, 404)
         assert(response1.data['detail'] == "Not found.")
-
-
-

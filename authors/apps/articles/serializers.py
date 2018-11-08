@@ -4,10 +4,11 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import serializers
 
 from authors.apps.articles.utils import ChoicesField
-from .models import Article, TaggedItem, ArticleRating, Photo
+from .models import Article, TaggedItem, ArticleRating
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.profiles.models import Profile
 from authors.apps.likedislike.serializers import VoteObjectRelatedSerializer
+
 
 class ArticlePagination(PageNumberPagination):
     """
@@ -15,6 +16,19 @@ class ArticlePagination(PageNumberPagination):
     """
     page_size = 10
     page_size_query_param = 'page_size'
+
+
+class TaggedItemSerializer(serializers.ModelSerializer):
+    """
+    This translates Tags models to serialized dates
+    """
+
+    class Meta:
+        model = TaggedItem
+        fields = ('tag_name',)
+
+    def to_representation(self, instance):
+        return instance.tag_name
 
 
 class TaggedOjectRelatedField(serializers.RelatedField):
@@ -34,6 +48,8 @@ class TaggedOjectRelatedField(serializers.RelatedField):
         raise Exception('Unexpected type of tagged object')
 
     def to_internal_value(self, data):
+        if isinstance(data, Article):
+            raise Exception("Expected a type of object")
         return TaggedItem.objects.create(tag_name=data)
 
 
@@ -42,7 +58,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     """
     This class creates the article serializers
     """
-    author = serializers.ReadOnlyField(source='author.username')
+    author = serializers.SerializerMethodField()
     tags = TaggedOjectRelatedField(many=True)
     votes = VoteObjectRelatedSerializer(read_only=True)
     class Meta:
@@ -63,6 +79,17 @@ class ArticleSerializer(serializers.ModelSerializer):
 
         )
 
+
+    def get_author(self, user):
+        """
+        Get the current user details
+        """
+        if isinstance(user, Article):
+            author = user.author
+            profile = Profile.objects.get(user_id=author.id)
+            serializer = ProfileSerializer(profile)
+            return serializer.data
+        return {}
 
     def create(self, validated_data):
         """
@@ -87,20 +114,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-class ImageFileSerializer(serializers.Serializer):
-    def create(self, validated_data):
-        pass
-
-
-class PhotoSerializer(serializers.Serializer):
-    """
-    This class performs the serialization of the images
-    """
-
-    class Meta:
-        model = Photo
-        fields = ('article',)
 
 class RatingSerializer(serializers.ModelSerializer):
     article = serializers.ReadOnlyField(source='article.id')

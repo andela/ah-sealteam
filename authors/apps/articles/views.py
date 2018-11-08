@@ -1,24 +1,32 @@
 """ This are the views for articles"""
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
+from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.generics import (
+    CreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    RetrieveAPIView
+)
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
-from django.contrib.contenttypes.models import ContentType
-
-from authors.apps.articles.permissions import ( IsAuthorOrReadOnly,
-                        NotArticleOwner, IsRaterOrReadOnly )
-from .models import Article, ArticleRating
-from .serializers import ArticleSerializer, RatingSerializer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 from .renderers import ArticleJSONRenderer
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import PageNumberPagination
 from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
-from authors.apps.likedislike.models import LikeDislike
+from .models import Article, ArticleRating, TaggedItem
+from .serializers import (
+    ArticleSerializer,
+    RatingSerializer,
+    TaggedItemSerializer
+)
+
 
 class ArticlePagination(PageNumberPagination):
+    """
+    Article pagination support
+    """
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 20
@@ -84,6 +92,20 @@ class ArticleAPIView(CreateAPIView):
             return self.get_paginated_response(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class TaggedItemRetrieveAPIView(RetrieveAPIView):
+    """
+    Making use of the viewsets to create the views for the tags
+    """
+    queryset = TaggedItem.objects
+    serializer_class = TaggedItemSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    
+    def get(self, request):
+        """
+        Getting all the tags in the application
+        """
+        serializer = self.serializer_class(self.queryset.all(), many=True)
+        return Response({'tags':serializer.data}, status=status.HTTP_200_OK)
 
 class ArticleRetrieveAPIView(RetrieveUpdateDestroyAPIView):
     """
