@@ -208,8 +208,6 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 SITE_ID = 1
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 LOGIN_REDIRECT_URL = '/'
@@ -237,3 +235,5 @@ REST_AUTH_SERIALIZERS = {
 django_heroku.settings(locals(), logging=not DEBUG)
 
 locals()['DATABASES']['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), ssl_require=not DEBUG)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
