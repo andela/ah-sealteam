@@ -27,7 +27,7 @@ SECRET_KEY = os.getenv("SECRET_KEY") or "secret"
 
 APP_SETTINGS = os.getenv("APP_SETTINGS")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if APP_SETTINGS == "development" else False
+DEBUG = True #if APP_SETTINGS == "development" else False
 
 ALLOWED_HOSTS = ['*']
 # Application definition
@@ -60,7 +60,9 @@ INSTALLED_APPS = [
     'authors.apps.core',
     'authors.apps.profiles',
     'authors.apps.articles',
-    'authors.apps.friends'
+    'authors.apps.friends',
+    'authors.apps.likedislike',
+    'authors.apps.comments'
 ]
 
 MIDDLEWARE = [
@@ -232,8 +234,9 @@ SWAGGER_SETTINGS = {
 REST_AUTH_SERIALIZERS = {
     "USER_DETAILS_SERIALIZER":'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
 }
+
 django_heroku.settings(locals(), logging=not DEBUG)
 
-locals()['DATABASES']['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), ssl_require=not DEBUG)
+locals()['DATABASES']['default'] = dj_database_url.config(engine='django.db.backends.postgresql',
+                                                          ssl_require=not DEBUG)
 
-SECRET_KEY = os.getenv('SECRET_KEY')

@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/', include('authors.apps.authentication.urls')),
     path('api/profiles/', include('authors.apps.profiles.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
+    path('api/articles/<slug:slug>/', include('authors.apps.comments.urls')),
     path('accounts/', include('allauth.urls')),
     path('api/profiles/<username>/', include('authors.apps.friends.urls')),
     

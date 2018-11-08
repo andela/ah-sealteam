@@ -13,6 +13,9 @@
       },
       "APP_SETTINGS":{
         "required": true
+      },
+      "DOMAIN":{
+        "required": true
       }
     },
     "formation": {

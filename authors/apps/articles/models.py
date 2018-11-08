@@ -14,11 +14,10 @@ from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKe
 from cloudinary.models import CloudinaryField
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db.models import Sum
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+
 from ..authentication.models import User
-from django.db.models.signals import pre_save
+from authors.apps.likedislike.models import LikeDislike
 
 
 class TaggedItem(models.Model):
@@ -45,57 +44,6 @@ def random_string_generator(size=4, chars=string.ascii_lowercase + string.digits
     """Generate random string for slug"""
     return ''.join(random.choice(chars) for _ in range(size))
 
-
-class LikeDislikeManager(models.Manager):
-    """
-    Manager class for like and dislike
-    """
-    use_for_related_fields = True
- 
-    def likes(self):
-        """
-        get all the likes for an object
-        """
-        return self.get_queryset().filter(vote__gt=0)
- 
-    def dislikes(self):
-        """
-        get all the dislikes of an object
-        """
-        return self.get_queryset().filter(vote__lt=0)
- 
-    def sum_rating(self):
-        """
-        obtain the aggregate likes/dislikes
-        """
-        return self.get_queryset().aggregate(Sum('vote')).get('vote__sum') or 0
-    
-    def articles(self):
-        """
-        obtain the votes of a particular user
-        """
-        return self.get_queryset().filter(content_type__model='article').order_by('-articles__published_at')
-
-class LikeDislike(models.Model):
-    """
-    Users should be able to like and/or dislike an article or comment.
-    This class creates the fields for like/dislike
-    """
-    LIKE = 1
-    DISLIKE = -1
- 
-    VOTES = (
-        (DISLIKE, 'Dislike'),
-        (LIKE, 'Like')
-    )
- 
-    vote = models.SmallIntegerField(verbose_name=_("vote"), choices=VOTES)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("user"))
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey()
-    
-    objects = LikeDislikeManager()
 
 class Article(models.Model):
     """
@@ -212,19 +160,3 @@ class ArticleRating(models.Model):
     class Meta:
         unique_together = ("user", "article")
         ordering = ('-rated_at', '-id')
-
-        
-class Comment(models.Model):
-    parent = models.ForeignKey('self', null=True, blank=False, on_delete=models.CASCADE, related_name='thread')
-    article = models.ForeignKey(Article, related_name='comment', null=True, blank=True, on_delete=models.CASCADE) 
-    author = models.ForeignKey(User, related_name='comment', blank=True, null=True, on_delete=models.CASCADE)
-    body = models.CharField(max_length=200)
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.body
-
-    
-
-

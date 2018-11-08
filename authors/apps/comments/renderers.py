@@ -2,8 +2,7 @@ import json
 
 from rest_framework.renderers import JSONRenderer
 
-
-class ArticleJSONRenderer(JSONRenderer):
+class CommentJSONRenderer(JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
@@ -21,5 +20,5 @@ class ArticleJSONRenderer(JSONRenderer):
 
         # Finally, we can render our data under the "user" namespace.
         return json.dumps({
-            'article': data
+            'comment': data
         })

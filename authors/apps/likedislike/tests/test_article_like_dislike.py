@@ -3,7 +3,7 @@ This module tests like and dislike functionality
 """
 from django.urls import reverse
 from authors.base_test import BaseTestCase
-from authors.apps.articles.models import LikeDislike
+from authors.apps.likedislike.models import LikeDislike
 
 class TestLikeDislikeArticle(BaseTestCase):
     """
