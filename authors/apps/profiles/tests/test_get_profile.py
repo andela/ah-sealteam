@@ -11,13 +11,14 @@ class TestProfile(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.get(self.profile_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data[0]['bio'] == ''
-        assert response.data[0]['image'] == None
+        assert response.data['count'] == 1
+        assert response.data['next'] == None
 
     def test_current_profile(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.get(self.profile_url + 'me')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.data['profile']['username'] == 'mike'
         assert response.data['profile']['bio'] == ''
         assert response.data['profile']['image'] == None
 
