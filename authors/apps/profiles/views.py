@@ -21,11 +21,11 @@ class ProfileApiView(generics.ListAPIView):
 
     serializer_class = ProfileSerializer
 
-    def get(self, format=None):
+    def get(self, request, format=None):
         """
         Get  and return all the profiles
         """
-        profile = Profile.objects.all()
+        profile = Profile.objects.exclude(user=request.user)
         serializer = ProfileSerializer(profile, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
