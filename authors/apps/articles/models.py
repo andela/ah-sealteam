@@ -113,8 +113,8 @@ class Article(models.Model):
     slug = models.SlugField(max_length=270, blank=True, null=True)
     updatedAt = models.DateTimeField(auto_now=True)
     published_at = models.DateTimeField(default=timezone.now)
-    read_time = models.CharField(default='0 min read', blank=True, 
-            null=True, max_length=20)
+    read_time = models.CharField(default='0 min read', blank=True,
+                                 null=True, max_length=20)
     favorited = models.BooleanField(default=False)
     content_html = models.TextField(editable=False)
     votes = GenericRelation(LikeDislike, related_query_name='articles')
@@ -158,6 +158,7 @@ class Article(models.Model):
             self.slug = self.unique_slug_generator()
         super().save(*args, **kwargs)
 
+
 def article_save(sender, instance, *args, **kwargs):
     """
     Saves the article instance of the read time to the database
@@ -167,7 +168,9 @@ def article_save(sender, instance, *args, **kwargs):
         read_time_str = readtime.of_html(markdown_text)
         instance.read_time = read_time_str
 
+
 pre_save.connect(article_save, sender=Article)
+
 
 class Photo(models.Model):
     """

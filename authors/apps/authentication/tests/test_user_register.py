@@ -14,7 +14,7 @@ class TestUserRegistration(BaseTestCase):
         """
         Ensures user can create a new account
         """
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert response.data.get("token")
 
@@ -28,7 +28,7 @@ class TestUserRegistration(BaseTestCase):
             "username": self.username,
             "password": "ajkjndsj4nsd"
         }
-        response = self.client.post(self.register_url, data, format='json')
+        response = self.client.post(self.register_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "Enter a valid email address."
 
@@ -42,7 +42,7 @@ class TestUserRegistration(BaseTestCase):
             "username": self.username,
             "password": ""
         }
-        response = self.client.post(self.register_url, data, format='json')
+        response = self.client.post(self.register_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"] == "Please provide a password"
 
@@ -56,7 +56,7 @@ class TestUserRegistration(BaseTestCase):
             "username": self.username,
             "password": "sgds6sdhbd"
         }
-        response = self.client.post(self.register_url, data, format='json')
+        response = self.client.post(self.register_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"] == "Please provide an email"
 
@@ -70,7 +70,7 @@ class TestUserRegistration(BaseTestCase):
                 "username": "",
                 "password": "sgds6sdhbd"
             }
-            response = self.client.post(self.register_url, data, format='json')
+            response = self.client.post(self.register_url, data, )
             self.assertEqual(response.status_code, 400)
             assert response.data['errors']["username"] == "Please provide a an username"
 
@@ -81,44 +81,44 @@ class TestUserRegistration(BaseTestCase):
             "username": "mineuser",
             "password": "asghvdbjknfsadnkf"
         }
-        response = self.client.post(self.register_url, my_user, format='json')
+        response = self.client.post(self.register_url, my_user, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"] == "Password must be between 8 - 20 " \
                                                       "characters and at least 1 digit"
 
     def test_register_if_user_already_exists(self):
         """Register with register user"""
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert response.data.get("token")
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         assert response.status_code == 400
         assert response.data["errors"]["email"][0] == "user with this email already exists."
         assert response.data["errors"]["username"][0] == "user with this username already exists."
 
     def test_forgot_password_request_with_valid_email(self):
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
             "email": self.email
         }
-        response = self.client.post(self.forgot_password_url, data, format='json')
+        response = self.client.post(self.forgot_password_url, data, )
         self.assertEqual(response.status_code, 200)
         assert response.data['email'] == "Instructions sent to testemail@gmail.com. Kindly check your email"
 
     def test_forgot_password_request_with_invalid_email(self):
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
             "email": "wrongemail@gmail.com"
         }
-        response = self.client.post(self.forgot_password_url, data, format='json')
+        response = self.client.post(self.forgot_password_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']['error'][0] == "No records found with the email address." \
                                                       " Create An Account To Continue."
 
     def test_reset_password(self):
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         data = {
             "email": self.email,

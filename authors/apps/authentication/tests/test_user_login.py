@@ -18,7 +18,7 @@ class TestUserLogin(BaseTestCase):
                 "email": self.email,
                 "password": self.password
             }
-        response = self.client.post(self.login_url, data, format='json')
+        response = self.client.post(self.login_url, data, )
         self.assertEqual(response.status_code, 200)
         assert response.data.get("token")
 
@@ -31,7 +31,7 @@ class TestUserLogin(BaseTestCase):
                 "email": self.email,
                 "password": "ndssjdknkjf"
             }
-        response = self.client.post(self.login_url, data, format='json')
+        response = self.client.post(self.login_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["error"][0] == "A user with this email " \
                                                       "and password was not found."
@@ -46,7 +46,7 @@ class TestUserLogin(BaseTestCase):
                 "email": "",
                 "password": "ndssjdknkjf"
             }
-        response = self.client.post(self.login_url, data, format='json')
+        response = self.client.post(self.login_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["email"][0] == "This field may not be blank."
 
@@ -57,7 +57,7 @@ class TestUserLogin(BaseTestCase):
                 "email": self.email,
                 "password": ""
             }
-        response = self.client.post(self.login_url, data, format='json')
+        response = self.client.post(self.login_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["password"][0] == "This field may not be blank."
 
@@ -68,7 +68,7 @@ class TestUserLogin(BaseTestCase):
                 "email": "noaccount@fma.com",
                 "password": "ndssjdknkjf"
             }
-        response = self.client.post(self.login_url, data, format='json')
+        response = self.client.post(self.login_url, data, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["error"][0] == "A user with this email " \
                                                       "and password was not found."
@@ -79,7 +79,7 @@ class TestUserLogin(BaseTestCase):
         user = User.objects.get(email=self.email)
         user.is_active = False
         user.save()
-        response = self.client.post(self.login_url, self.data_for_get_test, format='json')
+        response = self.client.post(self.login_url, self.data_for_get_test, )
         self.assertEqual(response.status_code, 400)
         assert response.data['errors']["error"][0] == "A user with this email " \
                                                       "and password was not found."

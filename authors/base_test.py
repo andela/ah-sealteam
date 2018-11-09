@@ -9,6 +9,7 @@ class BaseTestCase(TestCase):
     The base test case that all the test classes will use throughout
     the project
     """
+
     def setUp(self):
         self.client = APIClient()
         self.new_user = {
@@ -23,11 +24,10 @@ class BaseTestCase(TestCase):
             'tags': ['dkshdhds', 'hdkhsdhhdshd', 'sdjsdsdhd']
         }
         self.new_comment = {
-            'body':'I totally understand your article'
+            'body': 'I totally understand your article'
         }
         self.register_url = reverse('authentication:register')
         self.user_url = reverse('authentication:update_user')
-
 
         self.username = "mike"
         self.wrongmail = "dennis mail.com"
@@ -44,32 +44,33 @@ class BaseTestCase(TestCase):
         User.objects.create_user(username=self.username,
                                  email=self.email, password=self.password)
         self.data_for_get_test = {
-                "email": self.email,
-                "password": self.password
+            "email": self.email,
+            "password": self.password
         }
         self.second_test_data = {
-            "email":self.new_email,
-            "password":self.new_password,
-            "username":self.new_username
+            "email": self.new_email,
+            "password": self.new_password,
+            "username": self.new_username
         }
-        response = self.client.post(self.login_url, self.data_for_get_test, format='json')
+        response = self.client.post(self.login_url, self.data_for_get_test,
+                                    format='json')
         assert response.data.get("token")
         self.token = response.data["token"]
         assert response.status_code == 200
         self.user_url = reverse('authentication:update_user')
 
-
-        self.client.post(self.register_url, self.second_test_data, format='json')
-        response2 = self.client.post(self.login_url, self.second_test_data, format='json')
+        self.client.post(self.register_url, self.second_test_data,
+                         format='json')
+        response2 = self.client.post(self.login_url, self.second_test_data,
+                                     format='json')
         assert response2.data.get("token")
         self.token2 = response2.data["token"]
         assert response2.status_code == 200
 
-        self.client.post(self.register_url, self.second_test_data, format='json')
-        response2 = self.client.post(self.login_url, self.second_test_data, format='json')
+        self.client.post(self.register_url, self.second_test_data,
+                         format='json')
+        response2 = self.client.post(self.login_url, self.second_test_data,
+                                     format='json')
         assert response2.data.get("token")
         self.token2 = response2.data["token"]
         assert response2.status_code == 200
-
-
-
