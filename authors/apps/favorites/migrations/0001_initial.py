@@ -16,13 +16,20 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='LikeDislike',
+            name='Favorite',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('vote', models.SmallIntegerField(choices=[(-1, 'Dislike'), (1, 'Like')], verbose_name='vote')),
-                ('object_id', models.PositiveIntegerField()),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('object_id', models.PositiveIntegerField(null=True)),
                 ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favorites', to=settings.AUTH_USER_MODEL)),
             ],
+            options={
+                'ordering': ['-created_at'],
+            },
+        ),
+        migrations.AlterUniqueTogether(
+            name='favorite',
+            unique_together={('user', 'object_id')},
         ),
     ]
