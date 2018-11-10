@@ -16,6 +16,9 @@ from rest_framework.generics import (
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, PermissionDenied
+from django.contrib.contenttypes.models import ContentType
+from authors.apps.authentication.models import User
 
 from authors.apps.articles.permissions import IsAuthorOrReadOnly, \
     NotArticleOwner, IsRaterOrReadOnly

@@ -1,13 +1,13 @@
-
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import serializers
-
+from rest_framework.validators import UniqueTogetherValidator
 from authors.apps.articles.utils import ChoicesField
 from .models import Article, TaggedItem, ArticleRating
 from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.profiles.models import Profile
 from authors.apps.likedislike.serializers import VoteObjectRelatedSerializer
+from authors.apps.favorites.serializers import FavoriteObjectRelatedSerializer
 
 
 class ArticlePagination(PageNumberPagination):
@@ -61,6 +61,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
     tags = TaggedOjectRelatedField(many=True)
     votes = VoteObjectRelatedSerializer(read_only=True)
+    favorited = FavoriteObjectRelatedSerializer(read_only=True)
     class Meta:
         model = Article
 
@@ -109,7 +110,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         """
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get("description", instance.description)
-        instance.favorited = validated_data.get('favorited', instance.favorited)
         instance.body = validated_data.get('body', instance.body)
         instance.save()
         return instance
@@ -139,3 +139,20 @@ class RatingSerializer(serializers.ModelSerializer):
                                   "Consider updating your rating")
         instance = ArticleRating.objects.create(**validated_data)
         return instance
+
+# class FavoriteSerializer(serializers.ModelSerializer):
+#     """
+#     Favorite serializer class
+#     """
+#     class Meta:
+#         model = Favorite
+#         fields = ('article', 'user')
+#         validators = [
+#             UniqueTogetherValidator(
+#                 queryset = Favorite.objects.all(),
+#                 fields=('article', 'user'),
+#                 message="Article is already favorited"
+
+
+#             )
+#         ]

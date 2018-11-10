@@ -3,6 +3,8 @@
 """
 
 from django.urls import path, include
+from .views import ArticleAPIView, ArticleRetrieveAPIView, RateAPIView, RateRetrieveAPIView 
+from .models import Article
 from authors.apps.likedislike.views import LikeDislikeView
 from authors.apps.likedislike.models import LikeDislike
 from .views import (ArticleAPIView, ArticleRetrieveAPIView, LikeDislikeView, RateAPIView, 

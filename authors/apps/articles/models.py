@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from ..authentication.models import User
 from authors.apps.likedislike.models import LikeDislike
 from django.db.models.signals import pre_save
+from authors.apps.favorites.models import Favorite
 
 
 
@@ -65,6 +66,9 @@ class Article(models.Model):
     read_time = models.CharField(default='0 min read', blank=True,
                                  null=True, max_length=20)
     favorited = models.BooleanField(default=False)
+    read_time = models.CharField(default='0 min read', blank=True, 
+            null=True, max_length=20)
+    favorited = GenericRelation(Favorite)
     content_html = models.TextField(editable=False)
     votes = GenericRelation(LikeDislike, related_query_name='articles')
     objects = models.Manager()
