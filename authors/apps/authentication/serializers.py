@@ -10,6 +10,10 @@ from django.core.mail import send_mail
 
 from django.contrib.auth.tokens import default_token_generator
 
+import jwt
+
+from authors.settings import SECRET_KEY
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
     """Serializers registration requests and creates a new user."""
@@ -57,20 +61,6 @@ class LoginSerializer(serializers.Serializer):
         # our database.
         email = data.get('email', None)
         password = data.get('password', None)
-
-        # As mentioned above, an email is required. Raise an exception if an
-        # email is not provided.
-        if email is None:
-            raise serializers.ValidationError(
-                'An email address is required to log in.'
-            )
-
-        # As mentioned above, a password is required. Raise an exception if a
-        # password is not provided.
-        if password is None:
-            raise serializers.ValidationError(
-                'A password is required to log in.'
-            )
 
         # The `authenticate` method is provided by Django and handles checking
         # for a user that matches this email/password combination. Notice how
@@ -169,25 +159,32 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ResetPasswordSerializer(serializers.Serializer):
     """Serializers resets password."""
-    password = serializers.CharField(max_length=128, required=True, min_length=8)
-    email = serializers.EmailField()
-    token = serializers.CharField(max_length=225)
-
-    class Meta:
-        fields = ['email', 'password', 'token']
-
-class ForgotPasswordSerializer(serializers.Serializer):
-    email = serializers.CharField(max_length=255)
+    email = serializers.CharField(required=True)
+    new_password = serializers.CharField(max_length=128, required=True, min_length=8)
+    confirm_password = serializers.CharField(max_length=128, required=True, min_length=8)
 
     def validate(self, data):
-
+        new_password = data.get('new_password', None)
+        confirm_password = data.get('confirm_password', None)
+        token = self.context.get('token')
         email = data.get('email', None)
-
-        if email is None:
+        if new_password != confirm_password:
+            raise serializers.ValidationError('Passwords do not match.')
+        user = User.objects.get(email=email)
+        if not (default_token_generator.check_token(user, token)):
             raise serializers.ValidationError(
-                'An email address is required to continue.'
-            )
+                "You either have an invalid token or email")
+        user.set_password(new_password)
+        user.save()
+        return data
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.CharField(max_length=255, required=True)
+    username = serializers.CharField(required=False)
+    token = serializers.CharField(required=False)
+
+    def validate(self, data):
+        email = data.get('email', None)
         user = User.objects.filter(email=data.get('email', None)).first()
         if user is None:
             raise serializers.ValidationError(
@@ -195,12 +192,9 @@ class ForgotPasswordSerializer(serializers.Serializer):
             )
         else:
             token = default_token_generator.make_token(user)
-            send_mail(
-                'SEAL TEAM',
-                f'Greetings, \n You have given us a request to reset your password. \n '
-                f'Kindly use the following token and url when resetting \
-                \n \n token: {token} \n link: /api/users/resetpassword \n \n.'
-                f' Hope you have a lovely experience using our website. \n \n '
-                f'Have Fun!!! \n Seal Team',
-                'simplysealteam@gmail.com', [email], fail_silently=False)
-        return {'email': "Instructions sent to " + email + ". Kindly check your email"}
+            username = user.username
+            return ({
+                "email":email,
+                "username":username,
+                "token":token
+            })

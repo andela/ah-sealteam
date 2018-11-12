@@ -22,6 +22,39 @@ class TestUserLogin(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         assert response.data.get("token")
 
+    def test_user_login_with_no_data(self):
+        """
+        test login
+        :return:
+        """
+        data = "data"
+        response = self.client.post(self.login_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_user_login_with_no_email_field(self):
+        """
+        test login
+        :return:
+        """
+        data = {
+                "password": self.password
+            }
+        response = self.client.post(self.login_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert(response.data['errors']['email'][0] == "This field is required.")
+
+    def test_user_login_with_no_password_field(self):
+        """
+        test login
+        :return:
+        """
+        data = {
+                "email": self.email
+            }
+        response = self.client.post(self.login_url, data, format='json')
+        self.assertEqual(response.status_code, 400)
+        assert(response.data['errors']['password'][0] == "This field is required.")
+
     def test_user_login_with_invalid_password(self):
         """
         Test with wrong password
