@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
     'rest_auth.registration',
-    
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -163,7 +162,8 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    # 'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
 
 EMAIL_HOST = 'smtp.sendgrid.net'

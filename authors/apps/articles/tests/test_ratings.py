@@ -11,21 +11,21 @@ class TestPostRating(BaseTestCase):
     def base_method(self):
         """This one will allow our default user to post an article"""
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, format='json')
+        response = self.client.post(self.article_url, self.new_article, )
         slug = response.data["slug"]
         self.rate_data = {"rate": 5, "comment": "I like this article"}
         self.url = reverse('articles:create_get_rating', kwargs={"slug": slug})
 
     def rate_user(self):
         """This user will assist us in Ratings"""
-        response = self.client.post(self.register_url, self.new_user, format='json')
+        response = self.client.post(self.register_url, self.new_user, )
         return response.data["token"]
 
     def base_post_rate(self):
         """This class will act as base for get, update, delete one article"""
         self.base_method()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.rate_user())
-        self.rate_response = self.client.post(self.url, self.rate_data, format='json')
+        self.rate_response = self.client.post(self.url, self.rate_data, )
         self.rate_article_url = reverse('articles:get_update_delete_rating',
                                         kwargs={"rate_id": self.rate_response.data["id"]})
 
@@ -34,7 +34,7 @@ class TestPostRating(BaseTestCase):
         user_rate_token = self.rate_user()
         self.base_method()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_rate_token)
-        rate_response = self.client.post(self.url, self.rate_data, format='json')
+        rate_response = self.client.post(self.url, self.rate_data, )
         assert rate_response.status_code == 201
         assert rate_response.data["user"] == "asheuh"
         assert rate_response.data["rate"] == 5
@@ -43,7 +43,7 @@ class TestPostRating(BaseTestCase):
     def test_rating_your_article(self):
         """Checking if an author is trying himself"""
         self.base_method()
-        rate_response = self.client.post(self.url, self.rate_data, format='json')
+        rate_response = self.client.post(self.url, self.rate_data, )
         assert rate_response.status_code == 403
         assert rate_response.data["detail"] == "You are not allowed to rate yourself"
 
@@ -53,7 +53,7 @@ class TestPostRating(BaseTestCase):
         self.base_method()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_rate_token)
         self.rate_data = {"rate": '', "comment": "I like this article"}
-        rate_response = self.client.post(self.url, self.rate_data, format='json')
+        rate_response = self.client.post(self.url, self.rate_data, )
         assert rate_response.status_code == 400
         assert rate_response.data["rate"][0] == "Acceptable values are [5, 4, 3, 2, 1]."
 
@@ -62,12 +62,12 @@ class TestPostRating(BaseTestCase):
         user_rate_token = self.rate_user()
         self.base_method()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_rate_token)
-        rate_response = self.client.post(self.url, self.rate_data, format='json')
+        rate_response = self.client.post(self.url, self.rate_data, )
         assert rate_response.status_code == 201
         assert rate_response.data["user"] == "asheuh"
         assert rate_response.data["rate"] == 5
         assert rate_response.data["comment"] == "I like this article"
-        rate_response = self.client.post(self.url, self.rate_data, format='json')
+        rate_response = self.client.post(self.url, self.rate_data, )
         assert rate_response.status_code == 400
         assert rate_response.data["errors"][0] == 'Not allowed to rate twice.' \
                                                   ' Consider updating your rating'
@@ -89,7 +89,7 @@ class TestPostRating(BaseTestCase):
         self.base_method()
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + user_rate_token)
         rating_post_get = reverse('articles:create_get_rating', kwargs={"slug": 'does-not-exist'})
-        rate_response = self.client.post(rating_post_get, self.rate_data, format='json')
+        rate_response = self.client.post(rating_post_get, self.rate_data, )
         assert rate_response.status_code == 404
         assert rate_response.data["detail"] == "Not found."
 
