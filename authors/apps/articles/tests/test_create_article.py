@@ -15,7 +15,7 @@ class TestCreateArticle(BaseTestCase):
         Testing if a user is authenticated
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + "token")
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article, format='json')
         self.assertEqual(response.status_code, 403)
 
     def test_user_create_article(self):
@@ -23,7 +23,7 @@ class TestCreateArticle(BaseTestCase):
         Testing. Can a user create an article?
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article, format='json')
         self.assertEqual(response.status_code, 201)
 
     def test_article_fields_are_present(self):
@@ -34,7 +34,7 @@ class TestCreateArticle(BaseTestCase):
         data = {
 
         }
-        response = self.client.post(self.article_url, data, )
+        response = self.client.post(self.article_url, data, format='json')
         self.assertEqual(response.status_code, 400)
 
     def test_article_title_cannot_be_empty(self):
@@ -48,7 +48,7 @@ class TestCreateArticle(BaseTestCase):
 	        "tags":["one"],
 	        "body":"another"
         }
-        response = self.client.post(self.article_url, data, )
+        response = self.client.post(self.article_url, data, format='json')
         self.assertEqual(response.status_code, 400)
         assert(response.data['title'][0] == "This field may not be blank.")
    
@@ -58,7 +58,7 @@ class TestCreateArticle(BaseTestCase):
         Testing if user can retrieve a single article
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article, format='json')
         response1 = self.client.get(self.article_url + 'bmsdshdkskdskdsdshdk-ksdjsdksjdkshd-dkshdkshds')
         self.assertEqual(response1.status_code, 200)
 
@@ -67,7 +67,7 @@ class TestCreateArticle(BaseTestCase):
         Testing if user can retrieve a single article
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article, format='json')
         response1 = self.client.get(self.article_url + 'article')
         self.assertEqual(response1.status_code, 404)
 
@@ -89,7 +89,7 @@ class TestCreateArticle(BaseTestCase):
             "body": "This is an update to a body"
         }
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': response.data['slug']})
         response1 = self.client.put(url, data)
         self.assertEqual(response1.status_code, 200)
@@ -104,7 +104,7 @@ class TestCreateArticle(BaseTestCase):
             "body": "This is an update to a body"
         }
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': response.data['slug']})
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token2)
         response = self.client.put(url, data)
@@ -116,7 +116,7 @@ class TestCreateArticle(BaseTestCase):
         Given a user and an article, the user should be able to update an article.
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': response.data['slug']})
         response1 = self.client.put(url, "article")
         self.assertEqual(response1.status_code, 400)
@@ -126,7 +126,7 @@ class TestCreateArticle(BaseTestCase):
         Given a user and an article, the user should be able to delete their article
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': response.data['slug']})
         response1 = self.client.delete(url)
         self.assertEqual(response1.data['message'], {'Article was deleted successful'})
@@ -137,7 +137,7 @@ class TestCreateArticle(BaseTestCase):
         Given a user and an article, the user should be able to delete their article
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': response.data['slug']})
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.delete(url)
@@ -149,7 +149,7 @@ class TestCreateArticle(BaseTestCase):
         Given a user and an article, the user should be able to delete their article
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.post(self.article_url, self.new_article, )
+        response = self.client.post(self.article_url, self.new_article)
         url = reverse('articles:retrieve_article', kwargs={'slug': 'slug'})
         response1 = self.client.delete(url)
         self.assertEqual(response1.status_code, 404)

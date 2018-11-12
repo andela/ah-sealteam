@@ -1,21 +1,22 @@
 """ This are the views for articles"""
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Avg, Q
-from django.http import Http404
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from django.http import Http404
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-
-from authors.apps.articles.permissions import IsAuthorOrReadOnly, \
-    NotArticleOwner, IsRaterOrReadOnly
+from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
 from .models import Article, LikeDislike, ArticleRating, Comment
+from .serializers import ArticleSerializer, LikeDislikeSerializer, RatingSerializer, CommentSerializer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 from .renderers import ArticleJSONRenderer, CommentJSONRenderer
-from .serializers import ArticleSerializer, CommentSerializer, \
-    RatingSerializer, LikeDislikeSerializer
+from rest_framework.exceptions import NotFound, PermissionDenied
+
 
 
 class ArticlePagination(PageNumberPagination):
@@ -24,11 +25,12 @@ class ArticlePagination(PageNumberPagination):
     max_page_size = 20
 
 
-class ArticleAPIView(generics.ListAPIView):
+class ArticleAPIView(CreateAPIView):
     """
     A user can post an artcle once they have an account in the application
     params: ['title', 'description', 'body']
     """
+    queryset = Article.objects
     permission_classes = (IsAuthenticatedOrReadOnly,)
     serializer_class = ArticleSerializer
     pagination_class = ArticlePagination
@@ -72,7 +74,7 @@ class ArticleAPIView(generics.ListAPIView):
         """
         Get all the articles ever posted in the application
         """
-        self.queryset = self.get_queryset()
+        self.queryset = self.queryset.all()
         serializer = self.serializer_class(self.queryset, many=True)
         page = self.paginate_queryset(self.queryset)
         if page is not None:
@@ -252,16 +254,16 @@ class LikeDislikeView(CreateAPIView):
             # user has never voted for the article, create new record.
             obj.votes.create(user=request.user, vote=self.vote_type)
             result = True
-
+ 
         return Response({
-            "result": result,
-            "like_count": obj.votes.likes().count(),
-            "dislike_count": obj.votes.dislikes().count(),
-            "sum_rating": obj.votes.sum_rating()
-        },
-            content_type="application/json",
-            status=status.HTTP_201_CREATED
-        )
+                    "result": result,
+                    "like_count": obj.votes.likes().count(),
+                    "dislike_count": obj.votes.dislikes().count(),
+                    "sum_rating": obj.votes.sum_rating()
+                },
+                content_type="application/json",
+                status=status.HTTP_201_CREATED
+            )
 
 
 class ArticleCommentAPIView(CreateAPIView):
