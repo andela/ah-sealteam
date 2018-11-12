@@ -8,6 +8,7 @@ from django.http import Http404
 from django.contrib.auth import get_user_model
 
 from django.core.exceptions import ObjectDoesNotExist
+from authors.apps.core.paginator import CustomPaginator
 
 from .serializers import ProfileSerializer
 from .models import Profile
@@ -15,33 +16,38 @@ from .models import Profile
 
 class ProfileApiView(generics.ListAPIView):
     """
-    View for fetching all the available profiles
+        View for fetching all the available profiles
     """
     permission_classes = (IsAuthenticated,)
 
     serializer_class = ProfileSerializer
+    pagination_class = CustomPaginator
 
-    def get(self, request, format=None):
+    def get_queryset(self):
+        return Profile.objects.exclude(user=self.request.user)
+
+    def get(self, format=None):
         """
-        Get  and return all the profiles
+            Get  and return all the profiles
         """
-        profile = Profile.objects.exclude(user=request.user)
-        serializer = ProfileSerializer(profile, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(self.get_queryset())
+        if page is not None:
+            serializer = self.serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
 
 class ProfileRetrieve(generics.RetrieveAPIView):
     """
-    View for fetching a single profile belonging to the a certain user
+        View for fetching a single profile belonging to the a certain user
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
     def retrieve(self, request, *args, **kwargs):
         """
-        Get the user object using the passed in username
-        Check if a profile belonging to the user exists
-        if exists return it, else return not found
+            Get the user object using the passed in username
+            Check if a profile belonging to the user exists
+            if exists return it, else return not found
         """
         user = get_user_model().objects.get(id=request.user.id)
         profile = Profile.objects.get(user=user)
@@ -52,7 +58,7 @@ class ProfileRetrieve(generics.RetrieveAPIView):
 
 class ProfileRetrieveUpdate(generics.UpdateAPIView):
     """
-    View for Updating the user's profile
+        View for Updating the user's profile
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -60,10 +66,10 @@ class ProfileRetrieveUpdate(generics.UpdateAPIView):
 
     def put(self, request, username, format=None):
         """
-        get the user object from the passed in username
-        get the profile belonging to the passed in username
-        pass the request data through the serializer
-        check if valid and save
+            get the user object from the passed in username
+            get the profile belonging to the passed in username
+            pass the request data through the serializer
+            check if valid and save
         """
         # Custom error handling
         try:
@@ -85,9 +91,9 @@ class ProfileRetrieveUpdate(generics.UpdateAPIView):
 
     def get(self, request, username, format=None):
         """
-        get the user object from the passed in username
-        get the profile belonging to the passed in username
-        return the profile
+            get the user object from the passed in username
+            get the profile belonging to the passed in username
+            return the profile
         """
         try:
             user = get_user_model().objects.get(username=username)
