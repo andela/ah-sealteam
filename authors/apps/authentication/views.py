@@ -29,6 +29,9 @@ from .serializers import (
     ForgotPasswordSerializer)
 
 from django.contrib.auth.tokens import default_token_generator
+from datetime import datetime
+from django.template.loader import render_to_string, get_template
+from django.shortcuts import render, get_object_or_404
 
 class RegistrationAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to hit this endpoint.
@@ -108,41 +111,23 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
 
 class ResetPasswordAPIView(UpdateAPIView):
-    # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = ResetPasswordSerializer
 
-    def update(self, request, *args, **kwargs):
-        user = request.data
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
+    def get(self, request, token):
+        return render(request, 'reset_password_form.html', context={"token": token})
 
-        try:
-            obj = User.objects.get(email=serializer.data["email"])
-        except User.DoesNotExist:
-            return Response({"Message": "User With The Email Address Was Not Found"}, status=status.HTTP_404_NOT_FOUND)
-
+    def post(self, request, token):
+        data = request.data
+        serializer = self.serializer_class(
+            data=data, context={"token": token})
         if serializer.is_valid():
-            new_password = serializer.data["password"]
-            email = serializer.data["email"]
-
-        user = User.objects.filter(email=serializer.data["email"]).first()
-        is_valid_token = default_token_generator.check_token(user, serializer.data["token"])
-        if is_valid_token is False:
-            return Response({"Message": "Invalid email address or token. Please check your "
-                                        "email or generate another reset password email"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        else:
-            obj.set_password(new_password)
-            obj.save()
-            send_mail(
-                'SEAL TEAM',
-                f'Greetings, \n Your password has been changed successfully. Your new password is {new_password}. \
-                \n Keep it safe :-). \n Hope you have a lovely experience using our website.\
-                \n \n Have Fun!!! \n Seal Team', 'simplysealteam@gmail.com', [email], fail_silently=False)
-            return Response({'Success.': "Password Successfuly Reset"},
-                            status=status.HTTP_200_OK)
+            email = data['email']
+            user = get_object_or_404(User, email=email)
+            token = user.token()
+            return Response(dict(message="Congratulations! You have successfully changed your password.", token=token))
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ForgotPasswordAPIView(CreateAPIView):
@@ -152,15 +137,29 @@ class ForgotPasswordAPIView(CreateAPIView):
 
     def post(self, request):
         user = request.data
-
-        # Notice here that we do not call `serializer.save()` like we did for
-        # the registration endpoint. This is because we don't actually have
-        # anything to save. Instead, the `validate` method on our serializer
-        # handles everything we need.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            token = serializer.data['token']
+            username = serializer.data['username']
+            email = serializer.data['email']
+            time = datetime.now()
+            time = datetime.strftime(time, '%d-%B-%Y %H:%M')
+            currentsite_domain = '127.0.0.1:8000'
+            reset_link = 'http://' + currentsite_domain + \
+                '/api/users/resetpassword/{}/'.format(token)
+            subject, from_email, to = 'Authors Haven', 'simplysealteam@gmail.com', [
+                email]
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            html_content = render_to_string('forgot_password_email.html', context={
+                                            "reset_link": reset_link, "username": username, "time": time})
+            send_mail(subject, '', from_email, to, html_message=html_content)
+
+            return Response(dict(message="A link has been successfully sent to your email." \
+                                    " Check your spam folder incase you don't find it."))
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class GithubLogin(SocialLoginView):
     adapter_class = GitHubOAuth2Adapter
