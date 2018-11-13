@@ -56,7 +56,7 @@ class BaseTestCase(TestCase):
         self.forgot_password_url = reverse("authentication:forgot_password")
         self.article_url = reverse("articles:create_article")
         # this user will be used to test login
-        User.objects.create_user(username=self.username,
+        self.test_user = User.objects.create_user(username=self.username,
                                  email=self.email, password=self.password)
         self.data_for_get_test = {
                 "email": self.email,
@@ -80,8 +80,3 @@ class BaseTestCase(TestCase):
         self.token2 = response2.data["token"]
         assert response2.status_code == 200
 
-        self.client.post(self.register_url, self.second_test_data, format='json')
-        response2 = self.client.post(self.login_url, self.second_test_data, format='json')
-        assert response2.data.get("token")
-        self.token2 = response2.data["token"]
-        assert response2.status_code == 200

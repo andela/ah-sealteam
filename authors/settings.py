@@ -70,7 +70,10 @@ INSTALLED_APPS = [
     'authors.apps.stats',
     'authors.apps.highlight',
     'authors.apps.reports',
-    'authors.apps.favorites'
+    'authors.apps.favorites',
+    'authors.apps.usernotifications',
+    
+    'notifications'
 ]
 
 MIDDLEWARE = [
@@ -176,6 +179,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100
 }
 
+DOMAIN = os.getenv("DOMAIN")
 EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
@@ -238,6 +242,12 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+DJANGO_NOTIFICATIONS_CONFIG = {
+    'USE_JSONFIELD': True,
+    'SOFT_DELETE':True 
+}
+
 
 REST_AUTH_SERIALIZERS = {
     "USER_DETAILS_SERIALIZER":'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
