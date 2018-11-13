@@ -16,6 +16,14 @@ class BaseTestCase(TestCase):
             'email': 'asheuh@gmail.com',
             'password': 'Mermaid@914'
         }
+        self.highlight_data = {
+                "highlighted": "sdjksdjsdjsj idsdhskdhs",
+                "comment": "This is a comment"
+        }
+        self.highlight_test_data = {
+                "highlighted": "hjhjfhhkfhkjshfjksd jjkbjkhfjhsdfds",
+                "comment": "This text does not exist"
+        }
         self.new_article = {
             'title': 'bmsdshdkskdskdsdshdk ksdjsdksjdkshd dkshdkshds',
             'description': 'nsjdjsjdsd khdkshdksd hdkskdhshds',

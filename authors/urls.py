@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/articles/', include('authors.apps.articles.urls')),
     path('api/articles/<slug:slug>/', include('authors.apps.comments.urls')),
     path('api/articles/', include('authors.apps.bookmarks.urls')),
+    path('api/articles/', include('authors.apps.highlight.urls')),
     path('accounts/', include('allauth.urls')),
     path('api/profiles/<username>/', include('authors.apps.friends.urls')),
     path('api/statistics/', include('authors.apps.stats.urls')),
