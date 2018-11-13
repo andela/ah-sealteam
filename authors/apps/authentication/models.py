@@ -113,7 +113,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # when the email is verified it will be checked
     email_verified = models.BooleanField(default=False)
 
-    # More fields required by Django when specifying a custom user model.
+    # fields to specify whether a user has subscribed to notifications
+
+    email_notification_subscription = models.BooleanField(default=True)
+    app_notification_subscription = models.BooleanField(default=True)
 
     # The `USERNAME_FIELD` property tells us which field we will use to log in.
     # In this case, we want that to be the email field.

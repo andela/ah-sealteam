@@ -4,7 +4,9 @@ Serializers for comments app
 from rest_framework import serializers
 
 from .models import Comment
-from authors.apps.likedislike.models import LikeDislike 
+from authors.apps.likedislike.models import LikeDislike
+from authors.apps.profiles.models import Profile
+from authors.apps.profiles.serializers import ProfileSerializer
 from authors.apps.likedislike.serializers import VoteObjectRelatedSerializer
 from authors.apps.profiles.models import Profile
 from authors.apps.profiles.serializers import ProfileSerializer
