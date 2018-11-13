@@ -20,6 +20,7 @@ from rest_framework_swagger.views import get_swagger_view
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 schema_view = get_swagger_view(title='Authors Haven SealTeam API')
 
 urlpatterns = [
@@ -27,9 +28,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
     path('api/profiles/', include('authors.apps.profiles.urls')),
+    path('api/profiles/<username>/', include('authors.apps.friends.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
     path('api/articles/<slug:slug>/', include('authors.apps.comments.urls')),
     path('accounts/', include('allauth.urls')),
-    path('api/profiles/<username>/', include('authors.apps.friends.urls')),
-    
+    path('api/', include('authors.apps.usernotifications.urls'))
+
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

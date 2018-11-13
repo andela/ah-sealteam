@@ -4,10 +4,9 @@ activity stream configs
 
 from django.apps import AppConfig
 
-
-class CommentsConfig(AppConfig):
-    name = 'comments'
+class FriendsConfig(AppConfig):
+    name = 'friends'
 
     # def ready(self):
     #     from actstream import registry
-    #     registry.register(self.get_model('Comment'))
+    #     registry.register(self.get_model('Friend'))

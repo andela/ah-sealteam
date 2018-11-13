@@ -62,7 +62,11 @@ INSTALLED_APPS = [
     'authors.apps.articles',
     'authors.apps.friends',
     'authors.apps.likedislike',
-    'authors.apps.comments'
+    'authors.apps.comments',
+    'authors.apps.usernotifications',
+
+    'notifications',
+    # 'actstream'
 ]
 
 MIDDLEWARE = [
@@ -234,6 +238,11 @@ SWAGGER_SETTINGS = {
 REST_AUTH_SERIALIZERS = {
     "USER_DETAILS_SERIALIZER":'authors.apps.authentication.serializers.CustomUserDetailsSerializer'
 }
+
+DJANGO_NOTIFICATIONS_CONFIG = { 
+    'USE_JSONFIELD': True
+}
+
 
 django_heroku.settings(locals(), logging=not DEBUG)
 
