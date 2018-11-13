@@ -162,8 +162,7 @@ REST_FRAMEWORK = {
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-    'PAGE_SIZE': 100,
-    # 'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+    'PAGE_SIZE': 100
 }
 
 EMAIL_HOST = 'smtp.sendgrid.net'
@@ -237,3 +236,10 @@ django_heroku.settings(locals(), logging=not DEBUG)
 locals()['DATABASES']['default'] = dj_database_url.config(default=os.getenv("DATABASE_URL"), ssl_require=not DEBUG)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
+import datetime
+
+TOKEN_EXPIRE_TIME = datetime.timedelta(seconds=3)
+
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+

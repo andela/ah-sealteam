@@ -1,28 +1,33 @@
 import re
 
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView
-from django.views.generic import TemplateView
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from .models import User
-from django.core.mail import send_mail
-from rest_framework.generics import CreateAPIView
+import jwt
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+# from django.core.exceptions import ValidationError
+from django.http import HttpResponse
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from jwt import InvalidSignatureError, ExpiredSignatureError
 from rest_auth.registration.views import (
-    SocialLoginView, SocialConnectView, SocialAccountListView,
-    SocialAccountDisconnectView
+    SocialLoginView, SocialConnectView
 )
 from rest_auth.social_serializers import (
     TwitterLoginSerializer, TwitterConnectSerializer
 )
-from rest_auth.serializers import LoginSerializer
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import CreateAPIView
+from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
+from authors import settings
+from .models import User
 from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer,
@@ -59,9 +64,7 @@ class RegistrationAPIView(CreateAPIView):
         # your own work later on. Get familiar with it.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-
         serializer.save()
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -160,6 +163,57 @@ class ForgotPasswordAPIView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+@api_view(['GET'])
+def activate(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(username=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None:
+        try:
+            jwt.decode(token, settings.SECRET_KEY, algorithms="HS256")
+            user.email_verified = True
+            user.save()
+        except Exception as e:
+            return Response({"token": "Invalid token"}, status=status.HTTP_403_FORBIDDEN)
+        user.is_active = True
+        user.save()
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
+    else:
+        return HttpResponse('User not found')
+
+
+class GithubLogin(SocialLoginView):
+    adapter_class = GitHubOAuth2Adapter
+
+
+class GithubConnect(SocialConnectView):
+    adapter_class = GitHubOAuth2Adapter
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+
+
+class GoogleConnect(SocialConnectView):
+    adapter_class = GoogleOAuth2Adapter
+
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+
+
+class FacebookConnect(SocialConnectView):
+    adapter_class = FacebookOAuth2Adapter
+
+
+class TwitterLogin(SocialLoginView):
+    adapter_class = TwitterOAuthAdapter
+    serializer_class = TwitterLoginSerializer
 
 class GithubLogin(SocialLoginView):
     adapter_class = GitHubOAuth2Adapter

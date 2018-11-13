@@ -70,7 +70,7 @@ class TestUserRegistration(BaseTestCase):
                 "username": "",
                 "password": "sgds6sdhbd"
             }
-            response = self.client.post(self.register_url, data, )
+            response = self.client.post(self.register_url, data, format='json')
             self.assertEqual(response.status_code, 400)
             assert response.data['errors']["username"] == "Please provide a an username"
 
