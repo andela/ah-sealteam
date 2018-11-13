@@ -7,17 +7,16 @@ from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
-from rest_framework import status
-from rest_framework.generics import CreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.response import Response
-from django.contrib.contenttypes.models import ContentType
-from .models import Article, LikeDislike, ArticleRating, Comment
-from .serializers import ArticleSerializer, LikeDislikeSerializer, RatingSerializer, CommentSerializer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-from .renderers import ArticleJSONRenderer, CommentJSONRenderer
 from rest_framework.exceptions import NotFound, PermissionDenied
+from django.contrib.contenttypes.models import ContentType
 
-
+from authors.apps.articles.permissions import ( IsAuthorOrReadOnly,
+                        NotArticleOwner, IsRaterOrReadOnly )
+from .models import Article, ArticleRating
+from .serializers import ArticleSerializer, RatingSerializer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+from .renderers import ArticleJSONRenderer
+from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
+from authors.apps.likedislike.models import LikeDislike
 
 class ArticlePagination(PageNumberPagination):
     page_size = 10
@@ -214,153 +213,4 @@ class RateRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         """This function will delete the article"""
         rate_delete = self.get_object()
         rate_delete.delete()
-        return Response({"message": "Your rate was successfully deleted"},
-                        status.HTTP_200_OK)
-
-
-class LikeDislikeView(CreateAPIView):
-    """
-    this class defines the endpoint for like and dislike
-    """
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = LikeDislikeSerializer
-    model = None  # Data Model - Articles or Comments
-    vote_type = None  # Vote type Like/Dislike
-
-    def post(self, request, slug):
-        """
-        This view enables a user to like or dislike an article
-        """
-        obj = self.model.objects.get(slug=slug)
-        # GenericForeignKey does not support get_or_create
-        # the code is therefore wrapped in a try.. except 
-        try:
-            like_dislike = LikeDislike.objects.get(
-                content_type=ContentType.objects.get_for_model(obj),
-                object_id=obj.id,
-                user=request.user)
-            # check if the user has liked or disliked the article
-            # or comment already
-            if like_dislike.vote is not self.vote_type:
-                like_dislike.vote = self.vote_type
-                like_dislike.save(update_fields=['vote'])
-                result = True
-            else:
-                # delete the existing record if the user is submitting
-                #  a similar vote
-                like_dislike.delete()
-                result = False
-        except LikeDislike.DoesNotExist:
-            # user has never voted for the article, create new record.
-            obj.votes.create(user=request.user, vote=self.vote_type)
-            result = True
- 
-        return Response({
-                    "result": result,
-                    "like_count": obj.votes.likes().count(),
-                    "dislike_count": obj.votes.dislikes().count(),
-                    "sum_rating": obj.votes.sum_rating()
-                },
-                content_type="application/json",
-                status=status.HTTP_201_CREATED
-            )
-
-
-class ArticleCommentAPIView(CreateAPIView):
-    """A user can comment on an article"""
-    queryset = Article.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = CommentSerializer
-
-    def post(self, request, slug=None, **kwargs):
-        """Comment on an article in the application
-        :param **kwargs:
-        """
-        renderer_classes = (CommentJSONRenderer,)
-        article = get_object_or_404(Article, slug=self.kwargs["slug"])
-        data = request.data
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            serializer.save(author=self.request.user, article=article)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, slug=None):
-        """Get all the comments of an article"""
-        article = get_object_or_404(Article, slug=self.kwargs["slug"])
-        comment_set = Comment.objects.filter(article__id=article.id)
-        comments = []
-        for comment in comment_set:
-            serializer = CommentSerializer(comment)
-            comments.append(serializer.data)
-            response = []
-            response.append({'comments': comments})
-        commentsCount = len(comments)
-        if commentsCount == 0:
-            return Response({"Message":
-                                 "There are no comments for this article"},
-                            status=status.HTTP_200_OK)
-        elif commentsCount == 1:
-            return Response(response, status=status.HTTP_200_OK)
-        else:
-            response.append({"commentsCount": commentsCount})
-            return Response(response, status=status.HTTP_200_OK)
-
-
-class ArticleCommentUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView,
-                                        CreateAPIView):
-    """Views to edit a comment in the application"""
-    queryset = Article.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly)
-    serializer_class = CommentSerializer
-
-    def get_object(self):
-        article = get_object_or_404(Article, slug=self.kwargs["slug"])
-        comment_set = Comment.objects.filter(article__id=article.id)
-        if not comment_set:
-            raise Http404
-        for comment in comment_set:
-            new_comment = get_object_or_404(Comment, pk=self.kwargs["id"])
-            if comment.id == new_comment.id:
-                self.check_object_permissions(self.request, comment)
-                return comment
-
-    def create(self, request, slug=None, pk=None, **kwargs):
-        data = request.data
-        context = {'request': request}
-        comment = self.get_object()
-        context['parent'] = comment = Comment.objects.get(pk=comment.id)
-        if context['parent']:
-            serializer = self.serializer_class(data=data, context=context)
-            serializer.is_valid(raise_exception=True)
-            serializer.save(author=self.request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            {"Message": "Comment with the specifid id was not found"})
-
-    def update(self, request, slug=None, pk=None, **kwargs):
-        """This function will update article"""
-        comment = self.get_object()
-        if comment == None:
-            return Response({
-                "message": "Comment with the specified id "
-                           "for this article does Not Exist"},
-                status=status.HTTP_404_NOT_FOUND)
-        data = request.data
-        serializer = self.serializer_class(comment, data=request.data,
-                                           partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, slug=None, pk=None, **kwargs):
-        """This function will delete the article"""
-        comment = self.get_object()
-        if comment == None:
-            return Response({
-                "message": "Comment with the specified id "
-                           "for this article does Not Exist"},
-                status=status.HTTP_404_NOT_FOUND)
-        comment.delete()
-        return Response({"message": {"Comment was deleted successfully"}},
-                        status.HTTP_200_OK)
+        return Response({"message": "Your rate was successfully deleted"}, status.HTTP_200_OK)
