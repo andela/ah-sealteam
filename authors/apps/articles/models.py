@@ -16,6 +16,8 @@ from django.db.models import Sum
 from django.utils.translation import ugettext_lazy as _
 from ..authentication.models import User
 from authors.apps.likedislike.models import LikeDislike
+from django.db.models.signals import pre_save
+
 
 
 class TaggedItem(models.Model):
@@ -139,3 +141,5 @@ class ArticleRating(models.Model):
     class Meta:
         unique_together = ("user", "article")
         ordering = ('-rated_at', '-id')
+
+        

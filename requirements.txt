@@ -68,3 +68,4 @@ urllib3==1.24
 Werkzeug==0.14.1
 whitenoise==4.1
 wrapt==1.10.11
+django-simple-history==2.5.1

@@ -6,6 +6,8 @@ from rest_framework import serializers
 from .models import Comment
 from authors.apps.likedislike.models import LikeDislike 
 from authors.apps.likedislike.serializers import VoteObjectRelatedSerializer
+from authors.apps.profiles.models import Profile
+from authors.apps.profiles.serializers import ProfileSerializer
 
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
@@ -36,13 +38,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
     def get_author(self, obj):
-        try:
-            author = obj.author
-            profile = Profile.objects.get(user_id=author.id)
-            serializer = ProfileSerializer(profile)
-            return serializer.data
-        except Exception as e:
-            return {}
+        author = obj.author
+        profile = Profile.objects.get(user_id=author.id)
+        serializer = ProfileSerializer(profile)
+        return serializer.data
 
     def create(self, validated_data):
         """
@@ -59,6 +58,5 @@ class CommentSerializer(serializers.ModelSerializer):
         instance.body = validated_data.get('body', instance.body)
         instance.save()
         return instance
-
 
 

@@ -41,7 +41,6 @@ class TestProfile(BaseTestCase):
     def test_unfollow_self(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.delete(self.friend_url + '/mike/unfollow')
-        print(response)
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
         assert response.data['message'] == 'You cannot unfollow yourself'
 
