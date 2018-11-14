@@ -29,7 +29,6 @@ class BaseTestCase(TestCase):
         self.register_url = reverse('authentication:register')
         self.user_url = reverse('authentication:update_user')
 
-
         self.username = "mike"
         self.wrongmail = "dennis mail.com"
         self.email = "testemail@gmail.com"

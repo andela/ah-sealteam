@@ -1,8 +1,18 @@
 """THis module is used to test user"""
 from rest_framework import status
-
+from django.contrib.auth import get_user_model
 from authors.base_test import BaseTestCase
 
+class UserTest(BaseTestCase):
+
+    def test_create_user(self):
+        self.assertIsInstance(
+            get_user_model().objects.create_user(**self.new_user), get_user_model())
+
+    def test_create_super_user(self):
+        user = get_user_model().objects.create_superuser(**self.new_user)
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
 
 class TestUserRegistration(BaseTestCase):
     """
