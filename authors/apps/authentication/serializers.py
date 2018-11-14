@@ -93,6 +93,7 @@ class LoginSerializer(serializers.Serializer):
             "token": user.token
         }
 
+
 class CustomUserDetailsSerializer(serializers.ModelSerializer):
     """
     serializer class for django rest auth social login
@@ -100,9 +101,11 @@ class CustomUserDetailsSerializer(serializers.ModelSerializer):
     email = serializers.CharField(max_length=255)
     username = serializers.CharField(max_length=255)
     token = serializers.CharField(max_length=255, read_only=True)
+
     class Meta:
         model = User
-        fields = ('email','username','token')
+        fields = ('email', 'username', 'token')
+
 
 class UserSerializer(serializers.ModelSerializer):
     """Handles serialization and deserialization of User objects."""
@@ -160,8 +163,10 @@ class UserSerializer(serializers.ModelSerializer):
 class ResetPasswordSerializer(serializers.Serializer):
     """Serializers resets password."""
     email = serializers.CharField(required=True)
-    new_password = serializers.CharField(max_length=128, required=True, min_length=8)
-    confirm_password = serializers.CharField(max_length=128, required=True, min_length=8)
+    new_password = serializers.CharField(max_length=128, required=True,
+                                         min_length=8)
+    confirm_password = serializers.CharField(max_length=128, required=True,
+                                             min_length=8)
 
     def validate(self, data):
         new_password = data.get('new_password', None)
@@ -177,6 +182,7 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
         return data
+
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.CharField(max_length=255, required=True)
@@ -194,7 +200,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
             token = default_token_generator.make_token(user)
             username = user.username
             return ({
-                "email":email,
-                "username":username,
-                "token":token
+                "email": email,
+                "username": username,
+                "token": token
             })

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Profile
 from django.contrib.auth import get_user_model
-from authors.apps.authentication.serializers import UserSerializer
 from django.core.serializers import serialize
 import json
 
