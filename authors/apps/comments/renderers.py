@@ -14,5 +14,5 @@ class CommentJSONRenderer(JSONRenderer):
 
         # Finally, we can render our data under the "user" namespace.
         return json.dumps({
-            'comment': data
+            'comments': data
         })

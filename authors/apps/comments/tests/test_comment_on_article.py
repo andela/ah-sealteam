@@ -110,6 +110,16 @@ class TestComments(BaseTestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, 403)
 
+    def test_user_can_delete_a_comment(self):
+        """A user can only edit their comments"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
+        response2 = self.client.post(url, self.new_comment)
+        url = reverse('comments:update_comment', kwargs={'slug': response.data['slug'], 'id':response2.data['id']})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_user_can_only_delete_their_comments(self):
         """A user can only edit their comments"""
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
@@ -257,7 +267,7 @@ class TestComments(BaseTestCase):
         url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
         response2 = self.client.post(url, self.new_comment)
         response3 = self.client.get(url)
-        assert(response3.data[0]['comments'][0]['author']['username'] == "mike")
+        assert(response3.data[0]['author']['username'] == "mike")
         self.assertEqual(response3.status_code, 200)
 
     
