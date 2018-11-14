@@ -267,7 +267,7 @@ class TestComments(BaseTestCase):
         url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
         response2 = self.client.post(url, self.new_comment)
         response3 = self.client.get(url)
-        assert(response3.data[0]['author']['username'] == "mike")
+        assert(response3.data[0]['author']['user']['username'] == "mike")
         self.assertEqual(response3.status_code, 200)
 
     
