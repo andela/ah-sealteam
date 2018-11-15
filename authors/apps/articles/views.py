@@ -1,20 +1,29 @@
 """ This are the views for articles"""
+import datetime
+
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
-from django.contrib.contenttypes.models import ContentType
-from django.http import Http404
 from rest_framework import status
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
+from rest_framework.exceptions import NotFound, PermissionDenied
+from .renderers import ArticleJSONRenderer
+from rest_framework.generics import (
+    CreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    RetrieveAPIView
+)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound, PermissionDenied
-from .renderers import ArticleJSONRenderer
-from authors.apps.articles.permissions import NotArticleOwner, IsRaterOrReadOnly, IsAuthorOrReadOnly
+
+from authors.apps.articles.permissions import IsAuthorOrReadOnly, \
+    NotArticleOwner, IsRaterOrReadOnly
+from authors.apps.stats.models import ReadingStatistics
 from .models import Article, ArticleRating, TaggedItem
+from .renderers import ArticleJSONRenderer
+from .serializers import ArticleSerializer, RatingSerializer
 from .serializers import (
-    ArticleSerializer,
-    RatingSerializer,
     TaggedItemSerializer
 )
 from authors.apps.likedislike.models import LikeDislike
@@ -124,6 +133,8 @@ class ArticleRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         """
         article = get_object_or_404(self.queryset, slug=slug)
         serializer = self.serializer_class(article)
+        if request.user and not isinstance(request.user, AnonymousUser):
+            self.update_read(article)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, slug=None, **kwargs):
@@ -144,6 +155,21 @@ class ArticleRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         return Response({"message": {"Article was deleted successful"}},
                         status.HTTP_200_OK)
 
+    def update_read(self, article):
+        """THis function will update no of reads on an article by user"""
+        read_statistics = ReadingStatistics.objects.filter(
+            user=self.request.user, article=article)
+        if read_statistics:
+            read_time = read_statistics[0].article.read_time
+            read_time_int = int(read_time.split(' ')[0]) * 60
+            no_sec = read_statistics[0].time_since_last_read().seconds
+            if no_sec > int(read_time_int):
+                read_statistics.update(no_read=read_statistics[0].no_read +
+                                               1, read_last_at=
+                datetime.datetime.now())
+        else:
+            ReadingStatistics.objects.create(user=self.request.user,
+                                             article=article)
 
 class RateAPIView(CreateAPIView):
     """

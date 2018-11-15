@@ -11,6 +11,9 @@ from rest_auth.registration.views import (
 
 app_name = "authentication"
 
+
+
+
 urlpatterns = [
     path('users/login', LoginAPIView.as_view(), name='login'),
     path('users/forgotpassword/', ForgotPasswordAPIView.as_view(), name='forgot_password'),

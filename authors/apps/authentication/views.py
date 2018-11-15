@@ -1,6 +1,18 @@
 import re
 
 import jwt
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import UpdateAPIView, RetrieveUpdateAPIView, \
+    RetrieveAPIView
+from django.views.generic import TemplateView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+
+from authors.apps.articles.models import Article
+from .models import User
+from django.core.mail import send_mail
+from rest_framework.generics import CreateAPIView
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -30,7 +42,8 @@ from authors import settings
 from .models import User
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer, ResetPasswordSerializer,
+    LoginSerializer, RegistrationSerializer, UserSerializer,
+    ResetPasswordSerializer,
     ForgotPasswordSerializer)
 
 from django.contrib.auth.tokens import default_token_generator
@@ -163,8 +176,6 @@ class ForgotPasswordAPIView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 @api_view(['GET'])
 def activate(request, uidb64, token):
     try:
@@ -223,7 +234,7 @@ class GithubConnect(SocialConnectView):
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
- 
+
 class GoogleConnect(SocialConnectView):
     adapter_class = GoogleOAuth2Adapter
 
