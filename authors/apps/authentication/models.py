@@ -36,13 +36,20 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save()
 
-        domain = os.getenv("DOMAIN")
+        domain = '127.0.0.1:8000'
         self.uid = urlsafe_base64_encode(force_bytes(user.username)).decode("utf-8")
-        message = render_to_string('email_confirm_html.html', {
+        token = user.token()
+        time = datetime.now()
+        time = datetime.strftime(time, '%d-%B-%Y %H:%M')
+        message = render_to_string('email_confirm.html', {
             'user': user,
             'domain': domain,
             'uid': self.uid,
             'token': user.token(),
+            'username': user.username,
+            'time': time,
+            'link': 'http://' + domain + \
+                '/api/activate/' + self.uid + '/' + token
         })
         mail_subject = 'Activate your account.'
         to_email = user.email
