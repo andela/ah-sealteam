@@ -23,6 +23,13 @@ class BaseTestCase(TestCase):
             'body': 'sdjksdjsdjsj idsdhskdhs ihdsdsdshdkshd khdkhsdhshdshdskd hdkshdkshdhsd',
             'tags': ['dkshdhds', 'hdkhsdhhdshd', 'sdjsdsdhd']
         }
+        self.second_article = {
+            'title': 'bmsdshdkskdskdsdshdk',
+            'description': 'nsjdjsjdsd',
+            
+            'body': 'sdjksdjsdjsj idsdhskdhs',
+            'tags': ['dkshdhds']
+        }
         self.new_comment = {
             'body':'I totally understand your article'
         }
