@@ -13,7 +13,7 @@ class TestProfile(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(self.friend_url + '/asheuh/follow')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data['username'] == 'asheuh'
+        assert response.data['user']['username'] == 'asheuh'
 
     def test_unfollow_other_user(self):
         self.client.post('http://127.0.0.1:8000/api/users/',
@@ -21,10 +21,10 @@ class TestProfile(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(self.friend_url + '/asheuh/follow')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data['username'] == 'asheuh'
+        assert response.data['user']['username'] == 'asheuh'
         response1 = self.client.delete(self.friend_url + '/asheuh/unfollow')
         self.assertEqual(response1.status_code, status.HTTP_200_OK)
-        assert response1.data['username'] == 'asheuh'
+        assert response1.data['user']['username'] == 'asheuh'
 
     def test_follow_self(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
