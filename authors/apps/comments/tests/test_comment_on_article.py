@@ -157,6 +157,19 @@ class TestComments(BaseTestCase):
         response3 = self.client.post(url, data)
         self.assertEqual(response3.status_code, 201)
 
+    def test_user_cannot_create_a_thread_on_an_article_with_no_comments(self):
+        """A user should be able to thread a comment"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
+        data = {
+            "body":"new comment"
+        }
+        url = reverse('comments:update_comment', kwargs={'slug': response.data['slug'], 'id':1})
+        response3 = self.client.post(url, data)
+        self.assertEqual(response3.status_code, 404)
+        assert(response3.data['detail'] == "Not found.")
+
     def test_user_cannot_create_a_thread_on_a_non_existing_comment(self):
         """A user should be able to thread a comment"""
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
@@ -207,7 +220,7 @@ class TestComments(BaseTestCase):
         self.assertEqual(response.status_code, 403)
         assert(response.data['detail'] == "Authentication credentials were not provided.")
 
-    def test_user_can_get_previous_history_of_a_comment(self):
+    def test_user_can_get_previous_history_of_a_comment_if_edited(self):
         """A user should be able to get edit history ofcomments of an article"""
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(self.article_url, self.new_article)
@@ -218,6 +231,26 @@ class TestComments(BaseTestCase):
         url = reverse('comments:previous_comment', kwargs={'slug': response.data['slug'], 'id':response2.data['id']})
         response3 = self.client.get(url)
         self.assertEqual(response3.status_code, 200)
+
+    def test_user_cannot_get_previous_history_of_a_comment_if_not_edited(self):
+        """A user should be able to get edit history ofcomments of an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
+        response2 = self.client.post(url, self.new_comment) 
+        url = reverse('comments:previous_comment', kwargs={'slug': response.data['slug'], 'id':response2.data['id']})
+        response3 = self.client.get(url)
+        self.assertEqual(response3.status_code, 404)
+        assert(response3.data['Message'] == "This comment has not been edited before")
+
+    def test_user_cannot_get_previous_history_of_a_comment_if_article_has_no_comments(self):
+        """A user should be able to get edit history ofcomments of an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
+        url = reverse('comments:previous_comment', kwargs={'slug': response.data['slug'], 'id':1})
+        response3 = self.client.get(url)
+        assert(response3.data['Message'] == "This article has no comments")
 
     def test_user_cannot_get_edit_history_of_a_non_existing_comment(self):
         """A user should not be able to get edit histories of a non-existing comment"""
@@ -233,7 +266,7 @@ class TestComments(BaseTestCase):
         url = reverse('comments:previous_comment', kwargs={'slug': response.data['slug'], 'id':115})
         response3 = self.client.get(url)
         self.assertEqual(response3.status_code, 404)
-        assert(response3.data['Message'] == "Either the comment does not exist or it has not been edited before")
+        assert(response3.data['Message'] == "The comment with the specified id does not belong to this article")
 
     def test_user_can_get_complete_edit_history_of_a_comment(self):
         """A user should be able to get edit histories of comments of an article"""
@@ -246,6 +279,29 @@ class TestComments(BaseTestCase):
         url = reverse('comments:all_previous_comments', kwargs={'slug': response.data['slug'], 'id':response2.data['id']})
         response3 = self.client.get(url)
         self.assertEqual(response3.status_code, 200)
+
+    def test_user_can_get_complete_edit_history_of_a_comment_if_it_belongs_to_an_article(self):
+        """A user should be able to get edit histories of comments of an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response.data['slug']})
+        self.client.post(url, self.new_comment)
+        response2 = self.client.post(self.article_url, self.second_article)
+        url = reverse('comments:comment_article', kwargs={'slug': response2.data['slug']})
+        response3 = self.client.post(url, self.new_comment)
+        url = reverse('comments:update_comment', kwargs={'slug': response2.data['slug'], 'id': response3.data['id']})
+        self.client.put(url, self.new_comment) 
+        url = reverse('comments:all_previous_comments', kwargs={'slug': response.data['slug'], 'id':response3.data['id']})
+        response5 = self.client.get(url)
+        assert(response5.data['Message'] == "The comment with the specified id does not belong to this article")
+
+    def test_user_cannot_get_complete_edit_history_of_a_comment_if_article_has_no_comments(self):
+        """A user should be able to get edit histories of comments of an article"""
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        response = self.client.post(self.article_url, self.new_article)
+        url = reverse('comments:all_previous_comments', kwargs={'slug': response.data['slug'], 'id':2})
+        response3 = self.client.get(url)
+        assert(response3.data['Message'] == "This article has no comments")
 
     def test_user_cannot_get_complete_edit_history_of_a_non_existing_comment(self):
         """A user should be able to get comments of an article if it exists"""
