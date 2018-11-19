@@ -56,8 +56,6 @@ class ArticleCommentAPIView(CreateAPIView):
         for comment in comment_set:
             serializer = CommentSerializer(comment)
             comments.append(serializer.data)
-            # response = []
-            # response.append({'comments': comments})
         commentsCount = len(comments)
         if commentsCount == 0:
             return Response({"Message":"There are no comments for this article"}, status=status.HTTP_200_OK) 
@@ -101,7 +99,7 @@ class ArticleCommentUpdateDeleteAPIView(RetrieveUpdateDestroyAPIView, CreateAPIV
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-    def update(self, request, slug=None, pk=None, **kwargs):
+    def update(self, request, pk=None, **kwargs):
         """This function will update article"""
         self.permission_classes.append(IsAuthorOrReadOnly)
         comment = get_object_or_404(Comment, pk=self.kwargs["id"])
@@ -129,18 +127,20 @@ class ImmediateCommentHistoryAPIView(RetrieveAPIView):
     def get(self, request, slug=None, id=None):
         article = get_object_or_404(Article, slug=self.kwargs["slug"])
         comment_set = Comment.objects.filter(article__id=article.id)
-        comments = []
-        for comment in comment_set:
-            newcomment = Comment.history.filter(id=self.kwargs['id'])
-            if not newcomment or newcomment.count() == 1:
-                return Response({'Message':'Either the comment does not exist or it has not been edited before'}, \
-                                    status=status.HTTP_404_NOT_FOUND)
-            previous_comment = newcomment[1]
-            serializer = CommentSerializer(previous_comment)
-            comments.append(serializer.data)
-            response = []
-            response.append({'comments': comments})
-            return Response(response, status=status.HTTP_200_OK)
+        if comment_set.exists():
+            for comment in comment_set:
+                if comment.id == self.kwargs['id']:
+                    newcomment = Comment.history.filter(id=self.kwargs['id'])
+                    if not newcomment or newcomment.count() == 1:
+                        return Response({'Message':'This comment has not been edited before'}, \
+                                            status=status.HTTP_404_NOT_FOUND)
+                    previous_comment = newcomment[1]
+                    serializer = CommentSerializer(previous_comment)
+                    response = []
+                    response.append(serializer.data)
+                    return Response(response, status=status.HTTP_200_OK)
+                return Response({"Message":"The comment with the specified id does not belong to this article"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"Message":"This article has no comments"})
 
 class AllCommentHistoryAPIView(RetrieveAPIView):
     """View to retrieve all previous comment"""
@@ -151,13 +151,17 @@ class AllCommentHistoryAPIView(RetrieveAPIView):
         renderer_classes = (CommentJSONRenderer,)
         article = get_object_or_404(Article, slug=self.kwargs["slug"])
         comment_set = Comment.objects.filter(article__id=article.id)
-        comments = []
-        for comment in comment_set:
-            newcomments = Comment.history.filter(id=self.kwargs['id'])
-            if not newcomments:
-                return Response({'Message':'This comment does not exist'}, status=status.HTTP_404_NOT_FOUND)
-            for history_comment in newcomments:
-                page = self.paginate_queryset(newcomments)
-                if page is not None:
-                    serializer = self.serializer_class(page, many=True)
-                    return self.get_paginated_response(serializer.data)
+        if comment_set.exists():
+            for comment in comment_set:
+                comments = []
+                newcomments = Comment.history.filter(id=self.kwargs['id'])
+                if not newcomments:
+                    return Response({'Message':'This comment does not exist'}, status=status.HTTP_404_NOT_FOUND)
+                for history_comment in newcomments:
+                    if comment.id == history_comment.id:
+                        page = self.paginate_queryset(newcomments)
+                        if page is not None:
+                            serializer = self.serializer_class(page, many=True)
+                            return self.get_paginated_response(serializer.data)
+                    return Response({"Message":"The comment with the specified id does not belong to this article"})
+        return Response({"Message":"This article has no comments"})

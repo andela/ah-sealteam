@@ -35,4 +35,6 @@ urlpatterns = [
     path('api/profiles/<username>/', include('authors.apps.friends.urls')),
     path('api/statistics/', include('authors.apps.stats.urls')),
 
+    path('api/', include('authors.apps.reports.urls'))
+    
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
