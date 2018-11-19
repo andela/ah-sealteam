@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'authors.apps.comments',
     'authors.apps.bookmarks',
     'authors.apps.stats',
+    'authors.apps.highlight',
     'authors.apps.reports',
 ]
 
@@ -173,7 +174,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100
 }
 
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
@@ -246,5 +247,3 @@ locals()['DATABASES']['default'] = dj_database_url.config(engine='django.db.back
                                                           ssl_require=not DEBUG)
 
 TOKEN_EXPIRE_TIME = datetime.timedelta(seconds=3)
-
-
