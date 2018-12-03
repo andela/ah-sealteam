@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'authors.apps.stats',
     'authors.apps.highlight',
     'authors.apps.reports',
+    'authors.apps.favorites'
 ]
 
 MIDDLEWARE = [
@@ -175,7 +176,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100
 }
 
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
