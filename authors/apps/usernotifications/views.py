@@ -70,7 +70,7 @@ class ReadNotificationsAPIView(NotificationAPIView):
     """
     List all the Read  notifications for this user
     """
-
+    
     def notifications(self, request):
         return request.user.notifications.read()
 
@@ -78,7 +78,7 @@ class ReadNotificationView(UpdateAPIView):
     """
     Mark a notification as read for this user
     """
-
+    serializer_class = NotificationSerializer
     def update(self, request, *args, **kwargs):
         """
         handle put request to mark a notification as read
