@@ -19,13 +19,14 @@ from django.urls import path
 from rest_framework_swagger.views import get_swagger_view
 from django.conf import settings
 from django.conf.urls.static import static
-
+import notifications.urls
 schema_view = get_swagger_view(title='Authors Haven SealTeam API')
 
 urlpatterns = [
     path('', schema_view),
     path('admin/', admin.site.urls),
     path('api/', include('authors.apps.authentication.urls')),
+    path('api/notifications/', include('authors.apps.usernotifications.urls', namespace="notifications")),
     path('api/profiles/', include('authors.apps.profiles.urls')),
     path('api/articles/', include('authors.apps.articles.urls')),
     path('api/articles/', include('authors.apps.favorites.urls')),

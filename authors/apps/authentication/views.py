@@ -1,5 +1,5 @@
 import re
-
+import os
 import jwt
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -161,8 +161,8 @@ class ForgotPasswordAPIView(CreateAPIView):
             email = serializer.data['email']
             time = datetime.now()
             time = datetime.strftime(time, '%d-%B-%Y %H:%M')
-            currentsite_domain = '127.0.0.1:8000'
-            reset_link = 'http://' + currentsite_domain + \
+            currentsite_domain = os.getenv("DOMAIN")
+            reset_link = currentsite_domain + \
                 '/api/users/resetpassword/{}/'.format(token)
             subject, from_email, to = 'Authors Haven', 'simplysealteam@gmail.com', [
                 email]
@@ -226,27 +226,6 @@ class TwitterLogin(SocialLoginView):
     adapter_class = TwitterOAuthAdapter
     serializer_class = TwitterLoginSerializer
 
-class GithubLogin(SocialLoginView):
-    adapter_class = GitHubOAuth2Adapter
-
-class GithubConnect(SocialConnectView):
-    adapter_class = GitHubOAuth2Adapter
-
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-
-class GoogleConnect(SocialConnectView):
-    adapter_class = GoogleOAuth2Adapter
-
-class FacebookLogin(SocialLoginView):
-    adapter_class = FacebookOAuth2Adapter
-
-class FacebookConnect(SocialConnectView):
-    adapter_class = FacebookOAuth2Adapter
-
-class TwitterLogin(SocialLoginView):
-    adapter_class = TwitterOAuthAdapter
-    serializer_class = TwitterLoginSerializer
 
 class TwitterConnect(SocialConnectView):
     adapter_class = TwitterOAuthAdapter
