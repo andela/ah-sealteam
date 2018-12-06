@@ -1,11 +1,16 @@
 """ This are the views for articles"""
+import os
 import datetime
+# import sendgrid
+# from decouple import config
+from django.core.mail import send_mail
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.exceptions import NotFound, PermissionDenied
 from .renderers import ArticleJSONRenderer
 from rest_framework.generics import (
@@ -14,7 +19,11 @@ from rest_framework.generics import (
     RetrieveAPIView
 )
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+# from django.core.mail import send_mail
+
+from sendgrid.helpers.mail import(Content, Email, Mail)
+from pyisemail import is_email
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
 from django.contrib.contenttypes.models import ContentType
@@ -25,13 +34,17 @@ from authors.apps.articles.permissions import IsAuthorOrReadOnly, \
 from authors.apps.stats.models import ReadingStatistics
 from .models import Article, ArticleRating, TaggedItem
 from .renderers import ArticleJSONRenderer
-from .serializers import ArticleSerializer, RatingSerializer
+from .serializers import ArticleSerializer, RatingSerializer, ShareArticleSerializer
 from .serializers import (
     TaggedItemSerializer
 )
 from authors.apps.likedislike.models import LikeDislike
 from authors.apps.likedislike.serializers import LikeDislikeSerializer
 from authors.apps.comments.serializers import CommentSerializer
+
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 class ArticlePagination(PageNumberPagination):
     """
@@ -312,4 +325,51 @@ class LikeDislikeView(CreateAPIView):
             content_type="application/json",
             status=status.HTTP_201_CREATED
         )
+
+class ShareArticleAPIView(CreateAPIView):
+    """
+    Class for article share
+    """
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (ArticleJSONRenderer,)
+    serializer_class = ShareArticleSerializer
+
+    def post(self, request, slug):
+        """
+        Method for sharing article via email
+        """
+        sender = request.user.email
+        sharer = request.user.username
+        article_shared = request.data.get('article', {})
+        serializer = self.serializer_class(data=article_shared)
+        serializer.is_valid(raise_exception=True)
+        host = os.getenv("DOMAIN")
+        # import pdb; pdb.set_trace()
+        shared_article_link = host + \
+        '/api/articles/{}'.format(slug)
+        if not is_email(article_shared['share_with']):
+            raise serializers.ValidationError({
+                'email': 'Enter a valid email address.'
+            })
+        share_article(sharer, shared_article_link, sender, article_shared['share_with'])
+
+        return Response({"message": "Article shared successfully"}, status.HTTP_200_OK)
+
+def share_article(sharer, host, sender, reciever_email):
+    """
+    This formats how the message would appear on the mail box
+    """
+    message_subject = "{} from Seal Team, shared an article with you via Authors Haven".format(sharer)
+    content =  """Hello, \n
+        {} via Authors Haven has shared an article with you.
+        Kindly click the link below to read the article.
+        {}""".format(sharer, host)
+        
+    response = send_mail(message_subject, content, sender, [reciever_email])
+    return response
+
+    
+
+
+
 

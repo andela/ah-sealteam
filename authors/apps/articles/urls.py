@@ -8,17 +8,11 @@ from .models import Article
 from authors.apps.likedislike.views import LikeDislikeView
 from authors.apps.likedislike.models import LikeDislike
 from .views import (ArticleAPIView, ArticleRetrieveAPIView, LikeDislikeView, RateAPIView, 
-                    RateRetrieveAPIView)
+                    RateRetrieveAPIView, ShareArticleAPIView, TaggedItemRetrieveAPIView)
 from .models import Article, LikeDislike
 
 from .models import Article
-from .views import (
-    ArticleAPIView,
-    ArticleRetrieveAPIView,
-    RateAPIView,
-    RateRetrieveAPIView,
-    TaggedItemRetrieveAPIView
-)
+
 app_name = 'articles'
 
 urlpatterns = [
@@ -34,4 +28,5 @@ urlpatterns = [
     path('<slug:slug>/dislike',
          LikeDislikeView.as_view(model=Article, vote_type=LikeDislike.DISLIKE),
          name='article_dislike'),
+         path('<slug>/share', ShareArticleAPIView.as_view(), name="share_article"),
 ]

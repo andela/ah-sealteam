@@ -140,19 +140,5 @@ class RatingSerializer(serializers.ModelSerializer):
         instance = ArticleRating.objects.create(**validated_data)
         return instance
 
-# class FavoriteSerializer(serializers.ModelSerializer):
-#     """
-#     Favorite serializer class
-#     """
-#     class Meta:
-#         model = Favorite
-#         fields = ('article', 'user')
-#         validators = [
-#             UniqueTogetherValidator(
-#                 queryset = Favorite.objects.all(),
-#                 fields=('article', 'user'),
-#                 message="Article is already favorited"
-
-
-#             )
-#         ]
+class ShareArticleSerializer(serializers.Serializer):
+    share_with = serializers.CharField()
