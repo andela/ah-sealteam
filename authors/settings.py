@@ -180,7 +180,7 @@ REST_FRAMEWORK = {
 }
 
 DOMAIN = os.getenv("DOMAIN")
-EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
