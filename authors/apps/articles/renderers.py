@@ -16,7 +16,7 @@ class ArticleJSONRenderer(JSONRenderer):
         if errors is not None:
             # As mentioned about, we will let the default JSONRenderer handle
             # rendering errors.
-            return super(UserJSONRenderer, self).render(data)
+            return super(ArticleJSONRenderer, self).render(data)
 
 
         # Finally, we can render our data under the "user" namespace.
