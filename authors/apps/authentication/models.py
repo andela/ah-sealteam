@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta
 
 import jwt
@@ -6,13 +5,15 @@ from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
-from django.core.mail import send_mail
+
+try:
+    from .django_asys_mail import send_mail
+except:
+    from django.core.mail import send_mail
 from django.db import models
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-
-
 
 
 class UserManager(BaseUserManager):
@@ -24,6 +25,7 @@ class UserManager(BaseUserManager):
     All we have to do is override the `create_user` function which we will use
     to create `User` objects.
     """
+
     def create_user(self, username, email, password=None):
         """Create and return a `User` with an email, username and password."""
         if username is None:
@@ -37,7 +39,8 @@ class UserManager(BaseUserManager):
         user.save()
 
         domain = '127.0.0.1:8000'
-        self.uid = urlsafe_base64_encode(force_bytes(user.username)).decode("utf-8")
+        self.uid = urlsafe_base64_encode(force_bytes(user.username)).decode(
+            "utf-8")
         token = user.token()
         time = datetime.now()
         time = datetime.strftime(time, '%d-%B-%Y %H:%M')
@@ -49,7 +52,7 @@ class UserManager(BaseUserManager):
             'username': user.username,
             'time': time,
             'link': 'http://' + domain + \
-                '/api/activate/' + self.uid + '/' + token
+                    '/api/activate/' + self.uid + '/' + token
         })
         mail_subject = 'Activate your account.'
         to_email = user.email
@@ -58,7 +61,7 @@ class UserManager(BaseUserManager):
             'Verify your Account',
             'simplysealteam@gmail.com',
             [to_email, ],
-            html_message=message, fail_silently=False)
+            fail_silently=False, html_message=message)
         return user
 
     def create_superuser(self, username, email, password):
@@ -162,5 +165,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         return jwt.encode(data, settings.SECRET_KEY).decode('utf-8')
 
 # class ActiveUser(models.Model):
-    # user = models.ForeignKey('User', on_delete="Cascade")
-    # verify_token = models.CharField(max_length=500)
+# user = models.ForeignKey('User', on_delete="Cascade")
+# verify_token = models.CharField(max_length=500)

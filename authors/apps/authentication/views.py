@@ -18,7 +18,10 @@ from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
+try:
+    from .django_asys_mail import send_mail
+except:
+    from django.core.mail import send_mail
 # from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.utils.encoding import force_text
