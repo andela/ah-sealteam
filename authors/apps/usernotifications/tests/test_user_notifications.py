@@ -39,6 +39,8 @@ class BaseNotificationsTestCase(BaseTestCase):
         # import pdb;pdb.set_trace()
         comment = Comment.objects.get(id=resp.data.get("id"))
         notify.send(user, recipient=user, verb="verb", target=article, description="description")
+        notify.send(article, recipient=user, verb="verb", target=user, description="description", resource_url="url")
+        notify.send(comment, recipient=user, verb="verb", target=user, description="description")
         notify.send(user, recipient=user, verb="verb", target=comment, description="description")
         
     def setUp(self):

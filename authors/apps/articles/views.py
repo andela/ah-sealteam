@@ -38,9 +38,6 @@ from .serializers import ArticleSerializer, RatingSerializer, ShareArticleSerial
 from .serializers import (
     TaggedItemSerializer
 )
-from authors.apps.likedislike.models import LikeDislike
-from authors.apps.likedislike.serializers import LikeDislikeSerializer
-from authors.apps.comments.serializers import CommentSerializer
 
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
@@ -278,54 +275,6 @@ class RateRetrieveAPIView(RetrieveUpdateDestroyAPIView):
         return Response({"message": "Your rate was successfully deleted"},
                         status.HTTP_200_OK)
 
-
-class LikeDislikeView(CreateAPIView):
-    """
-    this class defines the endpoint for like and dislike
-    """
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    serializer_class = LikeDislikeSerializer
-    model = None  # Data Model - Articles or Comments
-    vote_type = None  # Vote type Like/Dislike
-
-    def post(self, request, slug):
-        """
-        This view enables a user to like or dislike an article
-        """
-        obj = self.model.objects.get(slug=slug)
-        # GenericForeignKey does not support get_or_create
-        # the code is therefore wrapped in a try.. except 
-        try:
-            like_dislike = LikeDislike.objects.get(
-                content_type=ContentType.objects.get_for_model(obj),
-                object_id=obj.id,
-                user=request.user)
-            # check if the user has liked or disliked the article
-            # or comment already
-            if like_dislike.vote is not self.vote_type:
-                like_dislike.vote = self.vote_type
-                like_dislike.save(update_fields=['vote'])
-                result = True
-            else:
-                # delete the existing record if the user is submitting
-                #  a similar vote
-                like_dislike.delete()
-                result = False
-        except LikeDislike.DoesNotExist:
-            # user has never voted for the article, create new record.
-            obj.votes.create(user=request.user, vote=self.vote_type)
-            result = True
-
-        return Response({
-            "result": result,
-            "like_count": obj.votes.likes().count(),
-            "dislike_count": obj.votes.dislikes().count(),
-            "sum_rating": obj.votes.sum_rating()
-        },
-            content_type="application/json",
-            status=status.HTTP_201_CREATED
-        )
-
 class ShareArticleAPIView(CreateAPIView):
     """
     Class for article share
@@ -344,7 +293,6 @@ class ShareArticleAPIView(CreateAPIView):
         serializer = self.serializer_class(data=article_shared)
         serializer.is_valid(raise_exception=True)
         host = os.getenv("DOMAIN")
-        # import pdb; pdb.set_trace()
         shared_article_link = host + \
         '/api/articles/{}'.format(slug)
         if not is_email(article_shared['share_with']):
@@ -367,9 +315,3 @@ def share_article(sharer, host, sender, reciever_email):
         
     response = send_mail(message_subject, content, sender, [reciever_email])
     return response
-
-    
-
-
-
-
