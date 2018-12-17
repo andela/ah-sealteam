@@ -38,14 +38,14 @@ class ProfileApiView(generics.ListAPIView):
 
 class ProfileRetrieve(generics.RetrieveAPIView):
     """
-        View for fetching a single profile belonging to the a certain user
+        View for fetching a single profile belonging to currently logged in user
     """
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
     def retrieve(self, request, *args, **kwargs):
         """
-            Get the user object using the passed in username
+            Get the user object using the passed in user
             Check if a profile belonging to the user exists
             if exists return it, else return not found
         """
@@ -53,7 +53,7 @@ class ProfileRetrieve(generics.RetrieveAPIView):
         profile = Profile.objects.get(user=user)
 
         serializer = self.serializer_class(profile)
-        return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProfileRetrieveUpdate(generics.UpdateAPIView):
@@ -85,7 +85,7 @@ class ProfileRetrieveUpdate(generics.UpdateAPIView):
             profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"profile": serializer.data}, status=status.HTTP_202_ACCEPTED)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -102,6 +102,6 @@ class ProfileRetrieveUpdate(generics.UpdateAPIView):
         profile = Profile.objects.get(user=user)
         serializer = self.serializer_class(profile)
         if serializer:
-            return Response({"profile": serializer.data}, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
