@@ -4,8 +4,10 @@ from django.db.models.signals import post_save
 
 
 class Profile(models.Model):
+    firstname = models.CharField(max_length=50, default='')
+    lastname = models.CharField(max_length=50, default='')
     bio = models.CharField(max_length=255, default='')
-    image = models.ImageField(blank=True, upload_to='avatars/')
+    image = models.URLField(blank=True)
     user = models.OneToOneField(
         get_user_model(), on_delete=models.CASCADE, primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)

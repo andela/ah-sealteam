@@ -18,12 +18,12 @@ class TestProfile(BaseTestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.get(self.profile_url + 'me')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data['profile']['user']['username'] == 'mike'
-        assert response.data['profile']['bio'] == ''
-        assert response.data['profile']['image'] == None
+        assert response.data['username'] == 'mike'
+        assert response.data['bio'] == ''
+        assert response.data['image'] == ''
 
     def test_specific_user_profile(self):
         response = self.client.get(self.profile_url + 'mike')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data['profile']['bio'] == ''
-        assert response.data['profile']['image'] == None
+        assert response.data['bio'] == ''
+        assert response.data['image'] == ''

@@ -156,3 +156,5 @@ class RatingSerializer(serializers.ModelSerializer):
 
 #             )
 #         ]
+class ShareArticleSerializer(serializers.Serializer):
+    share_with = serializers.CharField()
