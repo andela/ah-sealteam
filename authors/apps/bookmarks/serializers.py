@@ -13,6 +13,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
     article_slug = serializers.ReadOnlyField(source='article.slug')
     article_description = serializers.ReadOnlyField(source='article.description')
     article_author = serializers.ReadOnlyField(source='user.username')
+    article_title = serializers.ReadOnlyField(source='article.title')
 
     class Meta:
         model = BookmarkArticle

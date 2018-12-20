@@ -68,6 +68,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = (
             'slug',
             'title',
+            'image',
             'description',
             'tags',
             'createdAt',
