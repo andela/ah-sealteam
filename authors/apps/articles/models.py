@@ -54,7 +54,7 @@ class Article(models.Model):
     """
     author = models.ForeignKey(User, related_name='article', blank=True,
                                null=True, on_delete=models.CASCADE)
-    title = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=150, unique=True)
     description = models.CharField(max_length=200, unique=True)
     body = models.TextField(unique=True)
     tags = GenericRelation(TaggedItem, related_query_name='articles')
