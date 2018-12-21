@@ -112,6 +112,7 @@ class ArticleSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.description = validated_data.get("description", instance.description)
         instance.body = validated_data.get('body', instance.body)
+        instance.image = validated_data.get('image', instance.image)
         instance.save()
         return instance
 
