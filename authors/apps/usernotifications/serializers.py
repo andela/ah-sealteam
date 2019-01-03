@@ -23,6 +23,15 @@ class UnsubscribeSerializer(serializers.Serializer):
     class Meta:
         fields = ('message', 'email', 'app')
 
+class DataField(serializers.RelatedField):
+    """
+    To represent the data object
+    """
+    def to_representation(self, value):
+        return{
+            "resource_url": value["resource_url"]
+        }
+
 class ActorTargetField(serializers.RelatedField):
     """
     To represent an actor / target
@@ -54,7 +63,8 @@ class NotificationSerializer(serializers.ModelSerializer):
     """
     actor = ActorTargetField(read_only=True)
     target = ActorTargetField(read_only=True)
+    data = DataField(read_only=True)
     class Meta:
         model = Notification
 
-        fields = ('id', 'actor', 'verb', 'target', 'level', 'unread', 'timestamp', 'description', 'emailed')
+        fields = ('id', 'actor', 'verb', 'target', 'level', 'unread', 'timestamp', 'description', 'emailed', 'data')

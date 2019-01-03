@@ -34,7 +34,7 @@ def follow_handler(sender, instance, created, **kwargs):
     follower = instance.user_from
     followed = instance.user_to
     recipients = followed
-    resource_url = "{}/api/profiles/{}".format(settings.DOMAIN, follower.username)
+    resource_url = "{}/api/profiles/{}".format(settings.FRONTEND_DOMAIN, follower.username)
     notify.send(follower,
                 recipient=recipients,
                 description="{} followed you on {}".format(follower.username, 
@@ -49,7 +49,7 @@ def comment_handler(sender, instance, created, **kwargs):
     notification handler for comments
     """
     recipients = []
-    if instance.parent:  
+    if instance.parent and instance.parent.author != instance.author:  
         # comment is part of a thread
         parent_comment_author = instance.parent.author
         recipients.append(parent_comment_author)
@@ -63,7 +63,8 @@ def comment_handler(sender, instance, created, **kwargs):
         article_author = article.author
         if article_author.id != comment_author.id:
             recipients.append(article_author)
-    resource_url = "{}".format(settings.DOMAIN)
+        resource_url = "{}/articles/{}".format(settings.FRONTEND_DOMAIN, article.slug)
+    resource_url = "{}/articles/".format(settings.FRONTEND_DOMAIN)
     notify.send(comment_author,
                 recipient=recipients,
                 description=desc_string.format(comment_author.username,
@@ -83,7 +84,7 @@ def article_handler(sender, instance, created, **kwargs):
     followers_qs = Friend.objects.select_related('user_from', 'user_to').filter(
                                                 user_to=article_author.id).all()
     recipients = [get_user_model().objects.get(id=u.user_from_id) for u in list(followers_qs)]
-    resource_url = "{}/api/articles/{}".format(settings.DOMAIN, instance.slug)
+    resource_url = "{}/articles/{}".format(settings.FRONTEND_DOMAIN, instance.slug)
     notify.send(article_author,
                 recipient=recipients,
                 description="{} posted an article on {}".format(article_author.username, 
@@ -101,7 +102,7 @@ def ratings_handler(sender, instance, created, **kwargs):
     article_author = article.author
     rating_author = instance.user
     desc_string = "{} rated your article ({}) and gave it {} on {}."
-    resource_url = "{}/api/articles/{}".format(settings.DOMAIN,
+    resource_url = "{}/articles/{}".format(settings.FRONTEND_DOMAIN,
                                                instance.article.slug)
     notify.send(rating_author,
                 recipient=article_author,
@@ -120,7 +121,7 @@ def bookmark_handler(sender, instance, created=None, **kwargs):
     """
     recipients = [mark.user for mark in BookmarkArticle.objects.filter(article=instance)]
     description = "The article you bookmarked - {} - has been deleted".format(instance.title)
-    resource_url = settings.DOMAIN
+    resource_url = settings.FRONTEND_DOMAIN
     notify.send(instance.author,
             recipient=recipients,
             description=description,
